@@ -1,0 +1,72 @@
+<svg viewBox="0 0 59 7" xmlns="http://www.w3.org/2000/svg" aria-label="aprenciber" role="img" shape-rendering="crispEdges" image-rendering="pixelated">
+  <defs>
+    <g id="glyph-a">
+      <rect x="1" y="0" width="3" height="1"/>
+      <rect x="0" y="1" width="1" height="6"/>
+      <rect x="4" y="1" width="1" height="6"/>
+      <rect x="1" y="3" width="3" height="1"/>
+    </g>
+    <g id="glyph-p">
+      <rect x="0" y="0" width="1" height="7"/>
+      <rect x="1" y="0" width="3" height="1"/>
+      <rect x="4" y="1" width="1" height="2"/>
+      <rect x="1" y="3" width="3" height="1"/>
+    </g>
+    <g id="glyph-r">
+      <rect x="0" y="0" width="1" height="7"/>
+      <rect x="1" y="0" width="3" height="1"/>
+      <rect x="4" y="1" width="1" height="2"/>
+      <rect x="1" y="3" width="3" height="1"/>
+      <rect x="3" y="4" width="1" height="1"/>
+      <rect x="4" y="5" width="1" height="1"/>
+      <rect x="4" y="6" width="1" height="1"/>
+    </g>
+    <g id="glyph-e">
+      <rect x="0" y="0" width="5" height="1"/>
+      <rect x="0" y="1" width="1" height="5"/>
+      <rect x="1" y="3" width="3" height="1"/>
+      <rect x="0" y="6" width="5" height="1"/>
+    </g>
+    <g id="glyph-n">
+      <rect x="0" y="0" width="1" height="7"/>
+      <rect x="4" y="0" width="1" height="7"/>
+      <rect x="1" y="1" width="1" height="1"/>
+      <rect x="2" y="2" width="1" height="1"/>
+      <rect x="3" y="3" width="1" height="1"/>
+    </g>
+    <g id="glyph-c">
+      <rect x="1" y="0" width="4" height="1"/>
+      <rect x="0" y="1" width="1" height="5"/>
+      <rect x="1" y="6" width="4" height="1"/>
+    </g>
+    <g id="glyph-i">
+      <rect x="0" y="0" width="5" height="1"/>
+      <rect x="2" y="1" width="1" height="5"/>
+      <rect x="0" y="6" width="5" height="1"/>
+    </g>
+    <g id="glyph-b">
+      <rect x="0" y="0" width="1" height="7"/>
+      <rect x="1" y="0" width="3" height="1"/>
+      <rect x="4" y="1" width="1" height="2"/>
+      <rect x="1" y="3" width="3" height="1"/>
+      <rect x="4" y="4" width="1" height="2"/>
+      <rect x="1" y="6" width="3" height="1"/>
+    </g>
+  </defs>
+  <!-- apren — white -->
+  <g fill="#ffffff">
+    <g transform="translate(0,0)"><use href="#glyph-a"/></g>
+    <g transform="translate(6,0)"><use href="#glyph-p"/></g>
+    <g transform="translate(12,0)"><use href="#glyph-r"/></g>
+    <g transform="translate(18,0)"><use href="#glyph-e"/></g>
+    <g transform="translate(24,0)"><use href="#glyph-n"/></g>
+  </g>
+  <!-- ciber — dark grey -->
+  <g fill="#6b6868">
+    <g transform="translate(30,0)"><use href="#glyph-c"/></g>
+    <g transform="translate(36,0)"><use href="#glyph-i"/></g>
+    <g transform="translate(42,0)"><use href="#glyph-b"/></g>
+    <g transform="translate(48,0)"><use href="#glyph-e"/></g>
+    <g transform="translate(54,0)"><use href="#glyph-r"/></g>
+  </g>
+</svg>
