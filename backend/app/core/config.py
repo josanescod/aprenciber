@@ -7,7 +7,7 @@ class Settings(BaseSettings):
         "postgresql+psycopg://postgres:postgres@localhost:5432/aprenciber"
     )
     supabase_url: str = ""
-    supabase_anon_key: str = ""
+    supabase_publishable_key: str = ""
     flag_secret: str = "change_me"
 
     model_config = SettingsConfigDict(
