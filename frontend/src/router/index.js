@@ -6,6 +6,7 @@ import DashboardView from '../views/DashboardView.vue'
 import ScenariosView from '../views/ScenariosView.vue'
 import LabView from '../views/LabView.vue'
 import ProgressView from '../views/ProgressView.vue'
+import NotFoundView from '../views/NotFoundView.vue'
 
 const routes = [
   {
@@ -16,7 +17,7 @@ const routes = [
     path: '/login',
     name: 'login',
     component: LoginView,
-    meta: { requiresGuest: true }, 
+    meta: { requiresGuest: true },
   },
   {
     path: '/dashboard',
@@ -42,6 +43,11 @@ const routes = [
     component: ProgressView,
     meta: { requiresAuth: true },
   },
+  {
+    path: '/:pathMatch(.*)*', // Qualsevol ruta que no coincideixi amb les anteriors redirigir a NotFoundView
+    name: 'not-found',
+    component: NotFoundView,
+  },
 ]
 
 const router = createRouter({
@@ -52,7 +58,7 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const isAuthenticated = !!authStore.session
 
-  if (to.meta.requiresAuth && !isAuthenticated) { 
+  if (to.meta.requiresAuth && !isAuthenticated) {
     return { name: 'login' }
   }
 
