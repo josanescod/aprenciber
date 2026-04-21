@@ -1,3 +1,21 @@
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { authStore } from '../stores/auth'
+
+const email = ref('')
+const password = ref('')
+const router = useRouter()
+
+async function handleLogin() {
+  await authStore.login(email.value, password.value)
+  if (authStore.profile) {
+    router.push({ name: 'dashboard' })
+  }
+}
+</script>
+
+
 <template>
   <main class="max-w-md mx-auto p-6">
     <h1 class="text-2xl font-bold mb-4">Login</h1>
@@ -37,20 +55,9 @@
     </p>
 
     <section v-if="authStore.profile" class="mt-6 border rounded p-4">
-      <h2 class="font-semibold mb-2">Profile loaded from backend</h2>
+      <h2 class="font-semibold mb-2">Perfil carregat des del backend</h2>
       <pre class="text-sm">{{ authStore.profile }}</pre>
     </section>
   </main>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-import { authStore } from '../stores/auth'
-
-const email = ref('')
-const password = ref('')
-
-async function handleLogin() {
-  await authStore.login(email.value, password.value)
-}
-</script>
