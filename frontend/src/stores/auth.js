@@ -1,6 +1,5 @@
 import { reactive } from 'vue'
-
-import { apiGet } from '../services/api'
+import { apiFetch } from '../services/api'
 import {
   getSession,
   getUser,
@@ -16,22 +15,22 @@ export const authStore = reactive({
   error: null,
 
   async initialize() {
-  this.loading = true
-  this.error = null
+    this.loading = true
+    this.error = null
 
-  try {
-    this.session = await getSession()
+    try {
+      this.session = await getSession()
 
-    if (this.session?.access_token) {
-      this.user = await getUser()
-      this.profile = await apiGet('/api/users/me', this.session.access_token)
+      if (this.session?.access_token) {
+        this.user = await getUser()
+        this.profile = await apiFetch('/api/users/me', this.session.access_token)
+      }
+    } catch (error) {
+      this.error = error.message
+    } finally {
+      this.loading = false
     }
-  } catch (error) {
-    this.error = error.message
-  } finally {
-    this.loading = false
-  }
-},
+  },
 
   async login(email, password) {
     this.loading = true
@@ -41,7 +40,7 @@ export const authStore = reactive({
       const data = await signInWithPassword(email, password)
       this.session = data.session
       this.user = data.user
-      this.profile = await apiGet('/api/users/me', data.session.access_token)
+      this.profile = await apiFetch('/api/users/me', data.session.access_token)
     } catch (error) {
       this.error = error.message
       throw error
