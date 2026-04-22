@@ -1,0 +1,22 @@
+id: "ftp-default-creds-01"
+name: "FTP Default Credentials"
+description: "Accedeix a un servidor FTP mal configurat que utilitza credencials per defecte per obtenir la flag."
+difficulty: "easy"
+tags:
+  - "ftp"
+  - "default-credentials"
+  - "misconfiguration"
+active: true
+containers:
+  attacker:
+    image: "aprenciber-kali"
+    role: "attacker"
+  target:
+    image: "aprenciber-ftp-target"
+    role: "target"
+    ports:
+      - 21
+      - 20
+hints:
+  - "Els servidors FTP sovint es deixen amb les credencials per defecte."
+  - "Prova combinacions comunes com anonymous, admin o root."

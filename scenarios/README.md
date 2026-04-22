@@ -11,7 +11,7 @@ Cada escenari defineix:
 - contenidors necessaris (màquina atacant + màquina/es vulnerables)
 - configuració de l'entorn
 - hints
-- metadades (dificultat, tags, etc.)
+- metadades (dificultat, tags, rols etc.)
 
 ### Estructura
 
@@ -30,18 +30,25 @@ src/
 ```yaml
 id: "file_intrusions_01"
 name: "Exposed File Intrusion"
-description: "Access sensitive files by exploiting a misconfigured server"
+description: "Accedeix a fitxers sensibles explotant un servidor web mal configurat"
 difficulty: "easy"
-tags: ["file-intrusion", "path-traversal", "misconfiguration"]
-
+tags: 
+  - "file-intrusion"
+  - "path-traversal"
+  - "misconfiguration"
+active: true
 containers:
   attacker:
-    image: "kali-lite"
-  victim:
-    image: "vulnerable-web"
-
+    image: "aprenciber-kali"
+    role: "attacker"
+  target:
+    image: "aprenciber-vulnerable-web"
+    role: "target"
+    ports:
+      - 80
+      - 443
 hints:
-  - "Check publicly exposed paths and files."
-  - "Try manipulating parameters that point to files."
+  - "Comprova les rutes i els fitxers exposats públicament"
+  - "Intenta manipular els paràmetres que apunten als fitxers"
 ```
 
