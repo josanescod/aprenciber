@@ -1,4 +1,4 @@
-# API de escenaris i el catàleg frontend
+# API scenarios i mostra al frontend
 
 - crear els endpoints GET /scenarios GET /scenarios/{id}
 - carregar escenaris temporalment desde fitxers YAML pero en un futur via DB
