@@ -12,8 +12,19 @@ export async function apiFetch(path, accessToken, options = {}) {
 
   if (!response.ok) {
     const message = await response.text()
-    throw new Error(message || 'API request failed')
+    const error = new Error(message || 'API request failed')
+    error.status = response.status
+    //console.log('[apiFetch] error.status assigned:', error.status)
+    throw error
   }
 
   return response.json()
+}
+
+export async function getScenarios(accessToken) {
+  return apiFetch('/api/scenarios', accessToken)
+}
+
+export async function getScenario(id, accessToken) {
+  return apiFetch(`/api/scenarios/${id}`, accessToken)
 }

@@ -1,5 +1,4 @@
 #!/bin/bash
-
 docker run --name aprenciber-postgres \
   -e POSTGRES_DB=aprenciber \
   -e POSTGRES_USER=postgres \

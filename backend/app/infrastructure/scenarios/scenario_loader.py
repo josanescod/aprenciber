@@ -4,8 +4,12 @@ from typing import Any
 
 import yaml
 
+from sqlalchemy.orm import Session
+from app.models.scenario import Scenario as ScenarioModel
 
-SCENARIOS_DIR = Path(__file__).parent.parent.parent.parent / "scenarios"
+SCENARIOS_DIR = (
+    Path(__file__).resolve().parent.parent.parent.parent.parent / "scenarios"
+)
 
 REQUIRED_FIELDS = {"id", "name", "description", "difficulty", "tags", "containers"}
 
@@ -84,3 +88,36 @@ def load_all_scenarios() -> list[Scenario]:
             print(f"Warning: skipping {yaml_path}: {exc}")
 
     return scenarios
+
+
+def sync_scenarios_to_db(db: Session) -> int:
+    count = 0
+    for yaml_path in sorted(SCENARIOS_DIR.rglob("*.yaml")):
+        try:
+            scenario = load_scenario(yaml_path)
+            tags_str = ",".join(scenario.tags) if scenario.tags else None
+            existing = db.query(ScenarioModel).filter_by(slug=scenario.id).first()
+            if existing:
+                existing.title = scenario.name
+                existing.description = scenario.description
+                existing.difficulty = scenario.difficulty
+                existing.tags = tags_str
+                existing.is_active = scenario.active
+                existing.yaml_path = str(yaml_path)
+            else:
+                db.add(
+                    ScenarioModel(
+                        slug=scenario.id,
+                        title=scenario.name,
+                        description=scenario.description,
+                        difficulty=scenario.difficulty,
+                        tags=tags_str,
+                        yaml_path=str(yaml_path),
+                        is_active=scenario.active,
+                    )
+                )
+            count += 1
+        except (ValueError, FileNotFoundError, KeyError) as exc:
+            print(f"Warning: skipping {yaml_path}: {exc}")
+    db.commit()
+    return count

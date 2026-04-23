@@ -13,6 +13,7 @@ export const authStore = reactive({
   profile: null,
   loading: false,
   error: null,
+  initialized: false,
 
   async initialize() {
     this.loading = true
@@ -29,6 +30,7 @@ export const authStore = reactive({
       this.error = error.message
     } finally {
       this.loading = false
+      this.initialized = true
     }
   },
 

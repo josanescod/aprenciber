@@ -7,6 +7,7 @@ import ScenariosView from '../views/ScenariosView.vue'
 import LabView from '../views/LabView.vue'
 import ProgressView from '../views/ProgressView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
+import ScenarioDetailView from '../views/ScenarioDetailView.vue'
 
 const routes = [
   {
@@ -30,6 +31,12 @@ const routes = [
     name: 'scenarios',
     component: ScenariosView,
     meta: { requiresAuth: true }, // only access it if user is logged in
+  },
+  {
+    path: '/scenarios/:id',
+    name: 'scenario-detail',
+    component: ScenarioDetailView,
+    meta: { requiresAuth: true },
   },
   {
     path: '/lab',
@@ -56,6 +63,10 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
+  if (!authStore.initialized) {
+    await authStore.initialize()
+  }
+
   const isAuthenticated = !!authStore.session
 
   if (to.meta.requiresAuth && !isAuthenticated) {
