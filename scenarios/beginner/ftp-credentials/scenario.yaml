@@ -1,0 +1,24 @@
+id: "ftp-credentials-01"
+name: "FTP Credentials"
+description: "Accedeix a un servidor FTP per obtenir la flag."
+difficulty: "easy"
+tags:
+  - "ftp"
+  - "misconfiguration"
+active: true
+containers:
+  attacker:
+    image: "aprenciber-ftp-attacker"
+    build_context: "attacker"
+    dockerfile: "Dockerfile"
+    role: "attacker"
+  target:
+    image: "aprenciber-ftp-target"
+    build_context: "target"
+    dockerfile: "Dockerfile"
+    role: "target"
+    ports:
+      - 21
+hints:
+  - "Els banners FTP poden amagar més informació del que sembla a primera vista"
+  - "Prova un atac de diccionari amb l'eina Hydra"

@@ -18,7 +18,7 @@ Cada escenari defineix:
 ```txt
 src/
 └── beginner/
-    └── file_intrusion_vulnerability/
+    └── path-traversal/
         ├── scenario.yaml
         ├── instructions.md
         ├── init/
