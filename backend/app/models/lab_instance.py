@@ -1,9 +1,8 @@
 from datetime import datetime, timezone
-
 from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
-
 from app.infrastructure.db.base import Base
+from sqlalchemy.dialects.postgresql import JSONB
 
 
 class LabInstance(Base):
@@ -16,18 +15,20 @@ class LabInstance(Base):
     scenario_id: Mapped[int] = mapped_column(
         ForeignKey("scenarios.id"), nullable=False, index=True
     )
-
-    status: Mapped[str] = mapped_column(String(50), nullable=False, default="creating")
-    network_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    attacker_container_name: Mapped[str | None] = mapped_column(
-        String(255), nullable=True
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="running")
+    containers_info: Mapped[dict] = mapped_column(
+        JSONB,
+        nullable=False,
+        default=dict,
     )
-    vulnerable_container_name: Mapped[str | None] = mapped_column(
-        String(255), nullable=True
+
+    networks_info: Mapped[dict] = mapped_column(
+        JSONB,
+        nullable=False,
+        default=dict,
     )
     terminal_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     flag_value: Mapped[str | None] = mapped_column(String(255), nullable=True)
-
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

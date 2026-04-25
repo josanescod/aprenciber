@@ -6,19 +6,30 @@ tags:
   - "ftp"
   - "misconfiguration"
 active: true
+
+networks:
+  external:
+    driver: "bridge"
+
 containers:
   attacker:
-    image: "aprenciber-ftp-attacker"
+    image: "aprenciber-ftp-attacker:demo"
     build_context: "attacker"
     dockerfile: "Dockerfile"
     role: "attacker"
+    networks:
+      - "external"
+
   target:
-    image: "aprenciber-ftp-target"
+    image: "aprenciber-ftp-target:demo"
     build_context: "target"
     dockerfile: "Dockerfile"
     role: "target"
+    networks:
+      - "external"
     ports:
       - 21
+
 hints:
   - "Els banners FTP poden amagar més informació del que sembla a primera vista"
   - "Prova un atac de diccionari amb l'eina Hydra"

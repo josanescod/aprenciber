@@ -1,9 +1,11 @@
 #!/bin/bash
 
-docker rm -f aprenciber-attacker aprenciber-vuln-ftp 2>/dev/null || true
-docker rmi aprenciber-ftp-attacker:demo 2>/dev/null || true
-docker rmi aprenciber-ftp-target:demo 2>/dev/null || true
-docker network rm aprenciber-ftp-creds-net 2>/dev/null || true
+echo "[stopping] Eliminant contenidors de labs actius..."
 
+# Eliminar tots els contenidors amb prefix del provisioner
+docker ps -a --format '{{.Names}}' | grep '^aprenciber-lab-' | xargs -r docker rm -f
 
-echo "[contenidors, imatges i xarxa esborrats]"
+# Eliminar totes les xarxes amb prefix del provisioner
+docker network ls --format '{{.Name}}' | grep '^aprenciber-lab-' | xargs -r docker network rm
+
+echo "[Contenidors i xarxes eliminats. Les imatges es conserven]"

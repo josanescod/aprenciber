@@ -3,8 +3,8 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-
 from sqlalchemy.orm import Session
+
 from app.models.scenario import Scenario as ScenarioModel
 
 SCENARIOS_DIR = (
@@ -15,10 +15,16 @@ REQUIRED_FIELDS = {"id", "name", "description", "difficulty", "tags", "container
 
 
 @dataclass
+class NetworkConfig:
+    driver: str = "bridge"
+
+
+@dataclass
 class ContainerConfig:
     image: str
     role: str
-    ports: list[str] = field(default_factory=list)
+    networks: list[str] = field(default_factory=list)
+    ports: list[int] = field(default_factory=list)
 
 
 @dataclass
@@ -29,11 +35,22 @@ class Scenario:
     difficulty: str
     tags: list[str]
     containers: dict[str, ContainerConfig]
+    networks: dict[str, NetworkConfig] = field(default_factory=dict)
     hints: list[str] = field(default_factory=list)
     active: bool = True
+    yaml_path: str = ""
 
 
-def _parse_containers(raw: dict[str, Any]) -> dict[str, ContainerConfig]:  # verificar
+def _parse_networks(raw: dict[str, Any]) -> dict[str, NetworkConfig]:
+    result = {}
+    for name, config in raw.items():
+        result[name] = NetworkConfig(
+            driver=config.get("driver", "bridge"),
+        )
+    return result
+
+
+def _parse_containers(raw: dict[str, Any]) -> dict[str, ContainerConfig]:
     result = {}
     for name, config in raw.items():
         missing = {"image", "role"} - config.keys()
@@ -42,6 +59,7 @@ def _parse_containers(raw: dict[str, Any]) -> dict[str, ContainerConfig]:  # ver
         result[name] = ContainerConfig(
             image=config["image"],
             role=config["role"],
+            networks=config.get("networks", []),
             ports=config.get("ports", []),
         )
     return result
@@ -71,14 +89,15 @@ def load_scenario(yaml_path: Path) -> Scenario:
         difficulty=data["difficulty"],
         tags=data["tags"],
         containers=_parse_containers(data["containers"]),
+        networks=_parse_networks(data.get("networks", {})),
         hints=data.get("hints", []),
         active=data.get("active", True),
+        yaml_path=str(yaml_path),
     )
 
 
 def load_all_scenarios() -> list[Scenario]:
     scenarios = []
-
     for yaml_path in sorted(SCENARIOS_DIR.rglob("*.yaml")):
         try:
             scenario = load_scenario(yaml_path)
@@ -86,7 +105,6 @@ def load_all_scenarios() -> list[Scenario]:
                 scenarios.append(scenario)
         except (ValueError, FileNotFoundError, KeyError) as exc:
             print(f"Warning: skipping {yaml_path}: {exc}")
-
     return scenarios
 
 

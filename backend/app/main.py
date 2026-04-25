@@ -9,6 +9,8 @@ from app.infrastructure.db.session import SessionLocal
 
 from sqlalchemy.exc import SQLAlchemyError
 
+from app.api.routes import labs
+
 app = FastAPI(title="AprenCiber API")
 
 app.add_middleware(
@@ -39,3 +41,4 @@ def health_check() -> dict[str, str]:
 
 app.include_router(users_router)
 app.include_router(scenarios_router)
+app.include_router(labs.router)
