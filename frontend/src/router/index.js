@@ -39,8 +39,8 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: '/lab',
-    name: 'lab',
+    path: '/labs/:id',
+    name: 'lab-detail',
     component: LabView,
     meta: { requiresAuth: true },
   },

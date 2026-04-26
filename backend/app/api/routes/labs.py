@@ -34,11 +34,17 @@ def start_lab(
         )
 
     lab_repo = LabInstanceRepository(db)
-    existing = lab_repo.get_active_by_user_and_scenario(auth_user.id, scenario.id)
-    if existing:
+    existing_labs = lab_repo.get_active_by_user(auth_user.id)
+
+    if existing_labs:
+        existing = existing_labs[0]
+
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Ja tens un laboratori actiu per aquest escenari",
+            detail={
+                "message": "Ja tens un laboratori actiu",
+                "lab_id": existing.id,
+            },
         )
 
     scenario_yaml_path = Path(scenario.yaml_path)
@@ -73,11 +79,20 @@ def start_lab(
         status=lab_data["status"],
         containers_info=lab_data["containers_info"],
         networks_info=lab_data["networks_info"],
-        expires_at=datetime.now(timezone.utc) + timedelta(hours=2),
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=30),
     )
 
     saved_lab = lab_repo.create(lab)
     return saved_lab
+
+
+@router.get("/me/active", response_model=list[LabOut])
+def get_my_active_labs(
+    auth_user: AuthenticatedUser = Depends(get_current_auth_user),
+    db: Session = Depends(get_db),
+):
+    lab_repo = LabInstanceRepository(db)
+    return lab_repo.get_active_by_user(auth_user.id)
 
 
 @router.get("/{lab_id}", response_model=LabOut)

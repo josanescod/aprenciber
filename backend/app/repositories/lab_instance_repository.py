@@ -26,19 +26,6 @@ class LabInstanceRepository:
             .all()
         )
 
-    def get_active_by_user_and_scenario(
-        self, user_id: str, scenario_id: int
-    ) -> LabInstance | None:
-        return (
-            self.db.query(LabInstance)
-            .filter(
-                LabInstance.user_id == user_id,
-                LabInstance.scenario_id == scenario_id,
-                LabInstance.status.in_(["creating", "running"]),
-            )
-            .first()
-        )
-
     def update(self, lab: LabInstance) -> LabInstance:
         self.db.commit()
         self.db.refresh(lab)
