@@ -143,6 +143,38 @@ class LabProvisioner:
 
         return containers_info
 
+    def inject_flag(
+        self,
+        containers_info: dict,
+        flag_value: str,
+        flag_path: str,
+        target_logical_name: str = "target",
+    ) -> None:
+        target_info = containers_info.get(target_logical_name)
+
+        if not target_info:
+            raise RuntimeError(f"Target container '{target_logical_name}' not found")
+
+        container_name = target_info.get("name")
+        if not container_name:
+            raise RuntimeError("Target container name not found")
+
+        container = self.docker_client.containers.get(container_name)
+
+        command = (
+            f"mkdir -p $(dirname {flag_path}) "
+            f"&& printf '%s\n' '{flag_value}' > {flag_path} "
+            f"&& chmod 644 {flag_path}"
+        )
+
+        result = container.exec_run(
+            cmd=["/bin/sh", "-c", command],
+        )
+
+        if result.exit_code != 0:
+            error_output = result.output.decode("utf-8", errors="replace")
+            raise RuntimeError(f"Error injecting flag: {error_output}")
+
     def cleanup(self, containers_info: dict, networks_info: dict) -> None:
 
         errors: list[str] = []

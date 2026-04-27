@@ -28,6 +28,11 @@ class ContainerConfig:
 
 
 @dataclass
+class FlagConfig:
+    path: str
+
+
+@dataclass
 class Scenario:
     id: str
     name: str
@@ -37,6 +42,7 @@ class Scenario:
     containers: dict[str, ContainerConfig]
     networks: dict[str, NetworkConfig] = field(default_factory=dict)
     hints: list[str] = field(default_factory=list)
+    flag: FlagConfig | None = None
     active: bool = True
     yaml_path: str = ""
 
@@ -65,6 +71,16 @@ def _parse_containers(raw: dict[str, Any]) -> dict[str, ContainerConfig]:
     return result
 
 
+def _parse_flag(raw: dict[str, Any] | None) -> FlagConfig | None:
+    if raw is None:
+        return None
+
+    if "path" not in raw:
+        raise ValueError("Flag config missing required field: path")
+
+    return FlagConfig(path=raw["path"])
+
+
 def load_scenario(yaml_path: Path) -> Scenario:
     if not yaml_path.exists():
         raise FileNotFoundError(f"Scenario file not found: {yaml_path}")
@@ -91,6 +107,7 @@ def load_scenario(yaml_path: Path) -> Scenario:
         containers=_parse_containers(data["containers"]),
         networks=_parse_networks(data.get("networks", {})),
         hints=data.get("hints", []),
+        flag=_parse_flag(data.get("flag")),
         active=data.get("active", True),
         yaml_path=str(yaml_path),
     )

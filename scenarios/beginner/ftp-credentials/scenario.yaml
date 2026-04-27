@@ -31,7 +31,7 @@ containers:
       - 21
 
 flag:
-  path: "/home/ftpuser/flag.txt"
+  path: "/home/magnus/flag.txt"
   
 hints:
   - "Els banners FTP poden amagar més informació del que sembla a primera vista"

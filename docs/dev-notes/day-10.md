@@ -6,5 +6,6 @@
 - en producció el problema de les urls accessibles es podria solucionar amb un reverse proxy que validi JWT? 
 - verificació que dos usuaris diferents accedeixin a dos laboratoris diferents.
 - verificació que ttyd elimina els processos
-- xarxes docker per defecte amb mida molt gran que no les fan ideals per escanejos de xarxa amb `nmap`
+- xarxes docker per defecte amb mida molt gran que no les fan ideals per escanejos de xarxa amb `nmap`-
+- generar flags unics per contenidor
 

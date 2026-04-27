@@ -16,6 +16,7 @@ from app.schemas.lab import LabStartRequest, LabStartResponse, LabOut
 from app.services.auth_provider import AuthenticatedUser
 from app.infrastructure.ttyd.ttyd_manager import TtydManager
 from app.services import ttyd_process_registry
+from app.services.flag_service import generate_flag
 
 router = APIRouter(prefix="/api/labs", tags=["labs"])
 
@@ -75,16 +76,37 @@ def start_lab(
             detail=str(exc),
         ) from exc
 
+    # Generar el flag just després de provisionar el lab
+    flag = generate_flag()
+
     lab = LabInstance(
         user_id=auth_user.id,
         scenario_id=scenario.id,
         status=lab_data["status"],
         containers_info=lab_data["containers_info"],
         networks_info=lab_data["networks_info"],
+        flag_value=flag,
         expires_at=datetime.now(timezone.utc) + timedelta(minutes=30),
     )
 
     saved_lab = lab_repo.create(lab)
+
+    # Injectar flag al contenidor target
+    if scenario_data.flag is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Scenario flag configuration not found",
+        )
+    try:
+        provisioner.inject_flag(
+            containers_info=lab_data["containers_info"],
+            flag_value=flag,
+            flag_path=scenario_data.flag.path,
+        )
+        print(f"[flag] Injected into lab {saved_lab.id}")
+    except Exception as exc:
+        print(f"[flag] Warning: could not inject flag into lab {saved_lab.id}: {exc}")
+
     # Iniciar ttyd per al contenidor atacant
     attacker_name = lab_data["containers_info"].get("attacker", {}).get("name")
     if attacker_name:
