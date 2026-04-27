@@ -9,8 +9,10 @@ RUN apt-get update && apt-get install -y \
     ftp \
     nmap \
     hydra \
+    tmux \
     && rm -rf /var/lib/apt/lists/*
 
+RUN echo "set -g status off" > /root/.tmux.conf
 
 WORKDIR /root
 

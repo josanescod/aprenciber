@@ -14,7 +14,7 @@ from app.services.lab_cleanup import cleanup_expired_labs_loop
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     db = SessionLocal()
     cleanup_task = None
 

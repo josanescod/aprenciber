@@ -30,6 +30,9 @@ containers:
     ports:
       - 21
 
+flag:
+  path: "/home/ftpuser/flag.txt"
+  
 hints:
   - "Els banners FTP poden amagar més informació del que sembla a primera vista"
   - "Prova un atac de diccionari amb l'eina Hydra"

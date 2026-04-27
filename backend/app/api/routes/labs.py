@@ -14,6 +14,8 @@ from app.repositories.lab_instance_repository import LabInstanceRepository
 from app.repositories.scenario_repository import ScenarioRepository
 from app.schemas.lab import LabStartRequest, LabStartResponse, LabOut
 from app.services.auth_provider import AuthenticatedUser
+from app.infrastructure.ttyd.ttyd_manager import TtydManager
+from app.services import ttyd_process_registry
 
 router = APIRouter(prefix="/api/labs", tags=["labs"])
 
@@ -83,6 +85,22 @@ def start_lab(
     )
 
     saved_lab = lab_repo.create(lab)
+    # Iniciar ttyd per al contenidor atacant
+    attacker_name = lab_data["containers_info"].get("attacker", {}).get("name")
+    if attacker_name:
+        ttyd_manager = TtydManager()
+        try:
+            port, pid = ttyd_manager.start_terminal(attacker_name)
+            saved_lab.terminal_url = f"http://localhost:{port}"
+            saved_lab.terminal_pid = pid
+            lab_repo.update(saved_lab)
+            ttyd_process_registry.register(saved_lab.id, pid)
+            print(f"[ttyd] Started for lab {saved_lab.id} on port {port} (pid {pid})")
+        except (OSError, ValueError) as exc:
+            print(
+                f"[ttyd] Warning: could not start terminal for lab {saved_lab.id}: {exc}"
+            )
+
     return saved_lab
 
 
@@ -135,6 +153,14 @@ def destroy_lab(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Lab is already {lab.status}",
         )
+
+    # Matar el procés ttyd abans d'eliminar els contenidors
+    ttyd_manager = TtydManager()
+    pid = ttyd_process_registry.get_pid(lab_id) or lab.terminal_pid
+    if pid:
+        ttyd_manager.stop_terminal(pid)
+        ttyd_process_registry.unregister(lab_id)
+        print(f"[ttyd] Stopped for lab {lab_id} (pid {pid})")
 
     docker_client = get_docker_client()
     provisioner = LabProvisioner(docker_client)

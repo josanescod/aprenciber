@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from app.infrastructure.db.base import Base
 from sqlalchemy.dialects.postgresql import JSONB
@@ -28,6 +28,7 @@ class LabInstance(Base):
         default=dict,
     )
     terminal_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    terminal_pid: Mapped[int | None] = mapped_column(Integer, nullable=True)
     flag_value: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

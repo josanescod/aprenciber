@@ -11,18 +11,35 @@ const router = useRouter()
 const lab = ref(null)
 const loading = ref(true)
 const error = ref(null)
+const terminalReady = ref(false)
+const terminalUrl = ref(null)
 
 const labId = route.params.id
 
+async function prepareTerminal(rawUrl) {
+  terminalUrl.value = rawUrl
+  terminalReady.value = true
+}
+
 onMounted(async () => {
   try {
-    lab.value = await getLab(
-      labId,
-      authStore.session.access_token
-    )
+    lab.value = await getLab(labId, authStore.session.access_token)
+    if (lab.value.status === 'running' && lab.value.terminal_url) {
+      await prepareTerminal(lab.value.terminal_url)
+    }
   } catch (err) {
     console.error(err)
-    error.value = 'Error carregant el laboratori'
+    if (err.status === 404) {
+      router.replace({ name: 'not-found' })
+    } else if (err.status === 401) {
+      authStore.error = 'La sessió ha expirat. Torna a entrar.'
+      authStore.session = null
+      authStore.user = null
+      authStore.profile = null
+      router.replace({ name: 'login' })
+    } else {
+      error.value = 'Error carregant el laboratori'
+    }
   } finally {
     loading.value = false
   }
@@ -41,10 +58,16 @@ const statusColor = (status) => {
 
 async function removeLab() {
   try {
+    // Netejar el iframe abans d'eliminar el lab
+    terminalReady.value = false
+    terminalUrl.value = null
     await deleteLab(labId, authStore.session.access_token)
     router.push('/scenarios')
   } catch (err) {
     console.error(err)
+    // Si falla, restaurar la terminal
+    terminalReady.value = true
+    terminalUrl.value = lab.value.terminal_url
     alert('Error eliminant el laboratori')
   }
 }
@@ -64,28 +87,57 @@ async function removeLab() {
       </div>
 
       <div v-else-if="lab">
-        <p class="mb-2"><strong>ID:</strong> {{ lab.id }}</p>
-        <p class="mb-2">
-          <strong>Status:</strong>
-          <span :class="statusColor(lab.status)">
-            {{ lab.status }}
-          </span>
-        </p>
-        <p v-if="lab.status === 'expired'" class="text-orange-500 mb-2">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <p class="mb-1 text-sm text-gray-500">Lab #{{ lab.id }}</p>
+            <p class="mb-1">
+              <strong>Status:</strong>
+              <span :class="statusColor(lab.status)" class="ml-1 font-medium">
+                {{ lab.status }}
+              </span>
+            </p>
+          </div>
+          <button
+            class="bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded transition-colors"
+            :disabled="lab.status !== 'running'"
+            @click="removeLab">
+            Eliminar laboratori
+          </button>
+        </div>
+
+        <p v-if="lab.status === 'expired'" class="text-orange-500 mb-4">
           Aquest laboratori ha expirat.
         </p>
-        <button class="mt-4 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white px-4 py-2 rounded"
-          :disabled="lab.status !== 'running'" @click="removeLab">
-          Eliminar laboratori
-        </button>
-        <div class="mt-4">
-          <h2 class="font-semibold mb-2">Contenidors:</h2>
-          <ul class="text-sm text-gray-700">
+        <p v-if="lab.status === 'removed'" class="text-gray-500 mb-4">
+          Aquest laboratori ha estat eliminat.
+        </p>
+
+        <!-- Terminal -->
+        <div v-if="lab.status === 'running'" class="mb-6">
+          <h2 class="font-semibold mb-2">Terminal</h2>
+          <div v-if="terminalReady" class="rounded overflow-hidden border border-gray-300" style="height: 500px;">
+            <iframe
+              :src="terminalUrl"
+              class="w-full h-full"
+              frameborder="0"
+              allow="clipboard-read; clipboard-write"
+            />
+          </div>
+          <div v-else class="text-sm text-gray-500">
+            Preparant terminal...
+          </div>
+        </div>
+
+        <!-- Contenidors -->
+        <div class="mt-2">
+          <h2 class="font-semibold mb-2">Contenidors</h2>
+          <ul class="text-sm text-gray-700 space-y-1">
             <li v-for="(container, key) in lab.containers_info" :key="key">
-              {{ key }} → {{ container.name }}
+              <span class="font-medium">{{ key }}</span> → {{ container.name }}
             </li>
           </ul>
         </div>
+
       </div>
 
     </div>
