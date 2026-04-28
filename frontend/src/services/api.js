@@ -72,3 +72,8 @@ export async function submitFlag(labId, flag, accessToken) {
     body: JSON.stringify({ flag }),
   })
 }
+
+// mostrar progrés usuari
+export async function getMyProgress(accessToken) {
+  return apiFetch('/api/progress/me', accessToken)
+}

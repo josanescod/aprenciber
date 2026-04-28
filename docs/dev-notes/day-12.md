@@ -4,3 +4,4 @@
 - validació dels flags trobats
 - registre en submissions-
 - frontend amb formulari per enviar el flag
+- mostrar info a progrés d'usuari

@@ -231,6 +231,17 @@ def submit_flag(
             detail="Aquest laboratori no té flag configurada",
         )
 
+    submission_repo = SubmissionRepository(db)
+    existing_correct = submission_repo.get_correct_by_user_and_scenario(
+        auth_user.id,
+        lab.scenario_id,
+    )
+    if existing_correct:
+        return FlagSubmitResponse(
+            correct=True,
+            message="Aquest escenari ja està completat.",
+        )
+
     submitted = payload.flag.strip()
     expected = lab.flag_value.strip()
     is_correct = submitted.lower() == expected.lower()
@@ -238,13 +249,10 @@ def submit_flag(
     # Calcular temps des de l'inici del lab
     time_seconds = None
     if is_correct and lab.created_at:
-        from datetime import datetime, timezone
-
         now = datetime.now(timezone.utc)
         time_seconds = int((now - lab.created_at).total_seconds())
 
     # Guardar submission
-    submission_repo = SubmissionRepository(db)
     submission = Submission(
         user_id=auth_user.id,
         scenario_id=lab.scenario_id,

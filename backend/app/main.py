@@ -11,6 +11,7 @@ from app.api.routes.users import router as users_router
 from app.infrastructure.db.session import SessionLocal
 from app.infrastructure.scenarios.scenario_loader import sync_scenarios_to_db
 from app.services.lab_cleanup import cleanup_expired_labs_loop
+from app.api.routes.progress import router as progress_router
 
 
 @asynccontextmanager
@@ -50,6 +51,7 @@ app.add_middleware(
 app.include_router(users_router)
 app.include_router(scenarios_router)
 app.include_router(labs_router)
+app.include_router(progress_router)
 
 
 @app.get("/health")
