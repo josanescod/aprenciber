@@ -64,3 +64,11 @@ export async function deleteLab(labId, accessToken) {
 export async function getActiveLabs(accessToken) {
   return apiFetch('/api/labs/me/active', accessToken)
 }
+
+// validar la flag
+export async function submitFlag(labId, flag, accessToken) {
+  return apiFetch(`/api/labs/${labId}/submit`, accessToken, {
+    method: 'POST',
+    body: JSON.stringify({ flag }),
+  })
+}

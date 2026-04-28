@@ -17,6 +17,11 @@ from app.services.auth_provider import AuthenticatedUser
 from app.infrastructure.ttyd.ttyd_manager import TtydManager
 from app.services import ttyd_process_registry
 from app.services.flag_service import generate_flag
+from app.models.submission import Submission
+from app.repositories.submission_repository import SubmissionRepository
+from app.repositories.user_progress_repository import UserProgressRepository
+from app.schemas.submission import FlagSubmitRequest, FlagSubmitResponse
+
 
 router = APIRouter(prefix="/api/labs", tags=["labs"])
 
@@ -195,3 +200,76 @@ def destroy_lab(
     lab_repo.update(lab)
 
     return None
+
+
+# validar flag
+@router.post("/{lab_id}/submit", response_model=FlagSubmitResponse)
+def submit_flag(
+    lab_id: int,
+    payload: FlagSubmitRequest,
+    auth_user: AuthenticatedUser = Depends(get_current_auth_user),
+    db: Session = Depends(get_db),
+):
+    lab_repo = LabInstanceRepository(db)
+    lab = lab_repo.get_by_id(lab_id)
+
+    if lab is None or lab.user_id != auth_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Lab not found",
+        )
+
+    if lab.status != "running":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="El laboratori no està actiu",
+        )
+
+    if lab.flag_value is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Aquest laboratori no té flag configurada",
+        )
+
+    submitted = payload.flag.strip()
+    expected = lab.flag_value.strip()
+    is_correct = submitted.lower() == expected.lower()
+
+    # Calcular temps des de l'inici del lab
+    time_seconds = None
+    if is_correct and lab.created_at:
+        from datetime import datetime, timezone
+
+        now = datetime.now(timezone.utc)
+        time_seconds = int((now - lab.created_at).total_seconds())
+
+    # Guardar submission
+    submission_repo = SubmissionRepository(db)
+    submission = Submission(
+        user_id=auth_user.id,
+        scenario_id=lab.scenario_id,
+        lab_instance_id=lab.id,
+        submitted_flag=submitted,
+        is_correct=is_correct,
+    )
+    submission_repo.create(submission)
+
+    # Actualitzar progrés
+    progress_repo = UserProgressRepository(db)
+    progress_repo.upsert(
+        user_id=auth_user.id,
+        scenario_id=lab.scenario_id,
+        success=is_correct,
+        time_seconds=time_seconds,
+    )
+
+    if is_correct:
+        return FlagSubmitResponse(
+            correct=True,
+            message="Flag correcta! Has completat l'escenari.",
+        )
+    else:
+        return FlagSubmitResponse(
+            correct=False,
+            message="Flag incorrecta. Torna-ho a intentar.",
+        )

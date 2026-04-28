@@ -1,5 +1,6 @@
 #!/bin/bash
 docker run --name aprenciber-postgres \
+  --network aprenciber-net \
   -e POSTGRES_DB=aprenciber \
   -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=postgres \

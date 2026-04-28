@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppLayout from '../components/AppLayout.vue'
-import { getLab, deleteLab } from '../services/api.js'
+import { getLab, deleteLab, submitFlag } from '../services/api.js'
 import { authStore } from '../stores/auth.js'
 
 const route = useRoute()
@@ -13,6 +13,10 @@ const loading = ref(true)
 const error = ref(null)
 const terminalReady = ref(false)
 const terminalUrl = ref(null)
+//flags
+const flagInput = ref('')
+const flagSubmitting = ref(false)
+const flagResult = ref(null)
 
 const labId = route.params.id
 
@@ -23,7 +27,7 @@ async function prepareTerminal(rawUrl) {
 
 onMounted(async () => {
   try {
-    lab.value = await getLab(labId, authStore.session.access_token)
+    lab.value = await getLab(labId, authStore.session?.access_token)
     if (lab.value.status === 'running' && lab.value.terminal_url) {
       await prepareTerminal(lab.value.terminal_url)
     }
@@ -61,7 +65,7 @@ async function removeLab() {
     // Netejar el iframe abans d'eliminar el lab
     terminalReady.value = false
     terminalUrl.value = null
-    await deleteLab(labId, authStore.session.access_token)
+    await deleteLab(labId, authStore.session?.access_token)
     router.push('/scenarios')
   } catch (err) {
     console.error(err)
@@ -71,6 +75,30 @@ async function removeLab() {
     alert('Error eliminant el laboratori')
   }
 }
+
+async function sendFlag() {
+  if (!flagInput.value.trim()) return
+
+  flagSubmitting.value = true
+  flagResult.value = null
+
+  try {
+    const result = await submitFlag(labId, flagInput.value.trim(), authStore.session?.access_token)
+    flagResult.value = result
+    if (result.correct) {
+      flagInput.value = ''
+    }
+  } catch (err) {
+    console.error(err)
+    flagResult.value = {
+      correct: false,
+      message: 'Error enviant la flag. Torna-ho a intentar.',
+    }
+  } finally {
+    flagSubmitting.value = false
+  }
+}
+
 </script>
 
 <template>
@@ -125,6 +153,35 @@ async function removeLab() {
           </div>
           <div v-else class="text-sm text-gray-500">
             Preparant terminal...
+          </div>
+        </div>
+        <!-- Enviar flag -->
+        <div v-if="lab.status === 'running'" class="mb-6">
+          <h2 class="font-semibold mb-2">Enviar flag</h2>
+
+          <div v-if="flagResult?.correct" class="mb-3 p-3 bg-green-50 border border-green-200 rounded text-green-800 text-sm">
+            {{ flagResult.message }}
+          </div>
+
+          <div v-if="flagResult && !flagResult.correct" class="mb-3 p-3 bg-red-50 border border-red-200 rounded text-red-800 text-sm">
+            {{ flagResult.message }}
+          </div>
+
+          <div v-if="!flagResult?.correct" class="flex gap-2">
+            <input
+              v-model="flagInput"
+              type="text"
+              placeholder="FLAG{...}"
+              class="flex-1 border rounded px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+              :disabled="flagSubmitting"
+              @keyup.enter="sendFlag"
+            />
+            <button
+              class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded text-sm transition-colors"
+              :disabled="flagSubmitting || !flagInput.trim()"
+              @click="sendFlag">
+              {{ flagSubmitting ? 'Enviant...' : 'Enviar' }}
+            </button>
           </div>
         </div>
 
