@@ -109,7 +109,8 @@ def start_lab(
             flag_path=scenario_data.flag.path,
         )
         print(f"[flag] Injected into lab {saved_lab.id}")
-    except Exception as exc:
+
+    except (RuntimeError, OSError) as exc:
         print(f"[flag] Warning: could not inject flag into lab {saved_lab.id}: {exc}")
 
     # Iniciar ttyd per al contenidor atacant
@@ -239,7 +240,7 @@ def submit_flag(
     if existing_correct:
         return FlagSubmitResponse(
             correct=True,
-            message="Aquest escenari ja està completat.",
+            message="Aquest escenari ja estava completat anteriorment.",
         )
 
     submitted = payload.flag.strip()
