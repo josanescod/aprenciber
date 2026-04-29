@@ -60,6 +60,17 @@ const statusColor = (status) => {
   }
 }
 
+const statusLabel = (status) => {
+  switch (status) {
+    case 'running': return 'Actiu'
+    case 'creating': return 'Creant...'
+    case 'failed': return 'Error'
+    case 'removed': return 'Eliminat'
+    case 'expired': return 'Expirat'
+    default: return status
+  }
+}
+
 async function removeLab() {
   try {
     // Netejar el iframe abans d'eliminar el lab
@@ -119,9 +130,9 @@ async function sendFlag() {
           <div>
             <p class="mb-1 text-sm text-gray-500">Lab #{{ lab.id }}</p>
             <p class="mb-1">
-              <strong>Status:</strong>
+              <strong>Estat:</strong>
               <span :class="statusColor(lab.status)" class="ml-1 font-medium">
-                {{ lab.status }}
+                {{ statusLabel(lab.status) }}
               </span>
             </p>
           </div>
@@ -184,17 +195,6 @@ async function sendFlag() {
             </button>
           </div>
         </div>
-
-        <!-- Contenidors -->
-        <div class="mt-2">
-          <h2 class="font-semibold mb-2">Contenidors</h2>
-          <ul class="text-sm text-gray-700 space-y-1">
-            <li v-for="(container, key) in lab.containers_info" :key="key">
-              <span class="font-medium">{{ key }}</span> → {{ container.name }}
-            </li>
-          </ul>
-        </div>
-
       </div>
 
     </div>

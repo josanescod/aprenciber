@@ -17,7 +17,7 @@
       </nav>
 
       <div class="flex items-center gap-4 text-sm">
-        <span class="text-gray-500">{{ authStore.profile?.email }}</span>
+        <span class="text-gray-500">{{authStore.profile?.full_name || authStore.profile?.email }}</span>
         <button class="border rounded px-3 py-1 hover:bg-gray-100" @click="handleLogout">
           Sortir
         </button>
