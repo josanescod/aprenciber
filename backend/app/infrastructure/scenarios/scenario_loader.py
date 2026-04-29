@@ -17,6 +17,8 @@ REQUIRED_FIELDS = {"id", "name", "description", "difficulty", "tags", "container
 @dataclass
 class NetworkConfig:
     driver: str = "bridge"
+    subnet: str | None = None
+    gateway: str | None = None
 
 
 @dataclass
@@ -52,6 +54,8 @@ def _parse_networks(raw: dict[str, Any]) -> dict[str, NetworkConfig]:
     for name, config in raw.items():
         result[name] = NetworkConfig(
             driver=config.get("driver", "bridge"),
+            subnet=config.get("subnet"),
+            gateway=config.get("gateway"),
         )
     return result
 
@@ -137,6 +141,7 @@ def sync_scenarios_to_db(db: Session) -> int:
                 existing.description = scenario.description
                 existing.difficulty = scenario.difficulty
                 existing.tags = tags_str
+                existing.hints = scenario.hints
                 existing.is_active = scenario.active
                 existing.yaml_path = str(yaml_path)
             else:
@@ -147,6 +152,7 @@ def sync_scenarios_to_db(db: Session) -> int:
                         description=scenario.description,
                         difficulty=scenario.difficulty,
                         tags=tags_str,
+                        hints=scenario.hints,
                         yaml_path=str(yaml_path),
                         is_active=scenario.active,
                     )

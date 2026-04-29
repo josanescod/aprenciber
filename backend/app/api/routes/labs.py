@@ -43,10 +43,8 @@ def start_lab(
 
     lab_repo = LabInstanceRepository(db)
     existing_labs = lab_repo.get_active_by_user(auth_user.id)
-
     if existing_labs:
         existing = existing_labs[0]
-
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail={
@@ -70,31 +68,45 @@ def start_lab(
             detail=f"Error loading scenario: {exc}",
         ) from exc
 
+    # Crear el lab a BD primer amb status "creating" per obtenir lab.id
+    flag = generate_flag()
+    lab = LabInstance(
+        user_id=auth_user.id,
+        scenario_id=scenario.id,
+        status="creating",
+        containers_info={},
+        networks_info={},
+        flag_value=flag,
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=30),
+    )
+    saved_lab = lab_repo.create(lab)
+
+    # Calcular subnet dinàmica basada en lab.id — sense col·lisions
+    subnet_index = (saved_lab.id % 254) + 1
+    subnet = f"10.10.{subnet_index}.0/29"
+    gateway = f"10.10.{subnet_index}.1"
+    print(f"[lab] Lab {saved_lab.id} subnet: {subnet}")
+
+    # Provisionar contenidors Docker
     docker_client = get_docker_client()
     provisioner = LabProvisioner(docker_client)
 
     try:
-        lab_data = provisioner.start_lab(scenario_data)
+        lab_data = provisioner.start_lab(scenario_data, subnet=subnet, gateway=gateway)
     except RuntimeError as exc:
+        # Si falla el provisioner, marcar el lab com a failed
+        saved_lab.status = "failed"
+        lab_repo.update(saved_lab)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(exc),
         ) from exc
 
-    # Generar el flag just després de provisionar el lab
-    flag = generate_flag()
-
-    lab = LabInstance(
-        user_id=auth_user.id,
-        scenario_id=scenario.id,
-        status=lab_data["status"],
-        containers_info=lab_data["containers_info"],
-        networks_info=lab_data["networks_info"],
-        flag_value=flag,
-        expires_at=datetime.now(timezone.utc) + timedelta(minutes=30),
-    )
-
-    saved_lab = lab_repo.create(lab)
+    # Actualitzar lab amb containers_info i status running
+    saved_lab.status = lab_data["status"]
+    saved_lab.containers_info = lab_data["containers_info"]
+    saved_lab.networks_info = lab_data["networks_info"]
+    lab_repo.update(saved_lab)
 
     # Injectar flag al contenidor target
     if scenario_data.flag is None:
@@ -109,7 +121,6 @@ def start_lab(
             flag_path=scenario_data.flag.path,
         )
         print(f"[flag] Injected into lab {saved_lab.id}")
-
     except (RuntimeError, OSError) as exc:
         print(f"[flag] Warning: could not inject flag into lab {saved_lab.id}: {exc}")
 
@@ -233,27 +244,18 @@ def submit_flag(
         )
 
     submission_repo = SubmissionRepository(db)
-    existing_correct = submission_repo.get_correct_by_user_and_scenario(
-        auth_user.id,
-        lab.scenario_id,
-    )
-    if existing_correct:
-        return FlagSubmitResponse(
-            correct=True,
-            message="Aquest escenari ja estava completat anteriorment.",
-        )
+    progress_repo = UserProgressRepository(db)
 
     submitted = payload.flag.strip()
     expected = lab.flag_value.strip()
     is_correct = submitted.lower() == expected.lower()
 
-    # Calcular temps des de l'inici del lab
-    time_seconds = None
-    if is_correct and lab.created_at:
-        now = datetime.now(timezone.utc)
-        time_seconds = int((now - lab.created_at).total_seconds())
+    existing_correct = submission_repo.get_correct_by_user_and_scenario(
+        auth_user.id,
+        lab.scenario_id,
+    )
 
-    # Guardar submission
+    # Guardar submission siempre
     submission = Submission(
         user_id=auth_user.id,
         scenario_id=lab.scenario_id,
@@ -263,22 +265,38 @@ def submit_flag(
     )
     submission_repo.create(submission)
 
-    # Actualitzar progrés
-    progress_repo = UserProgressRepository(db)
-    progress_repo.upsert(
-        user_id=auth_user.id,
-        scenario_id=lab.scenario_id,
-        success=is_correct,
-        time_seconds=time_seconds,
-    )
-
-    if is_correct:
-        return FlagSubmitResponse(
-            correct=True,
-            message="Flag correcta! Has completat l'escenari.",
-        )
-    else:
+    if not is_correct:
         return FlagSubmitResponse(
             correct=False,
             message="Flag incorrecta. Torna-ho a intentar.",
         )
+
+    if existing_correct:
+        progress_repo.upsert(
+            user_id=auth_user.id,
+            scenario_id=lab.scenario_id,
+            success=True,
+            time_seconds=None,
+        )
+
+        return FlagSubmitResponse(
+            correct=True,
+            message="Aquest escenari ja estava completat anteriorment.",
+        )
+
+    time_seconds = None
+    if lab.created_at:
+        now = datetime.now(timezone.utc)
+        time_seconds = int((now - lab.created_at).total_seconds())
+
+    progress_repo.upsert(
+        user_id=auth_user.id,
+        scenario_id=lab.scenario_id,
+        success=True,
+        time_seconds=time_seconds,
+    )
+
+    return FlagSubmitResponse(
+        correct=True,
+        message="Flag correcta! Has completat l'escenari.",
+    )

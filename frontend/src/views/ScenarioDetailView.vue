@@ -146,8 +146,8 @@ async function startLab() {
                                 startingLab
                                     ? 'Creant laboratori...'
                                     : isCompleted
-                            ? 'Repetir laboratori'
-                            : 'Iniciar laboratori'
+                                        ? 'Repetir laboratori'
+                                        : 'Iniciar laboratori'
                             }}
                         </button>
 
@@ -168,7 +168,7 @@ async function startLab() {
                     </p>
 
                 </div>
-               
+
             </div>
 
         </div>

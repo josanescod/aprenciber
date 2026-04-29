@@ -34,5 +34,5 @@ flag:
   path: "/home/magnus/flag.txt"
   
 hints:
-  - "Els banners FTP poden amagar més informació del que sembla a primera vista"
-  - "Prova un atac de diccionari amb l'eina Hydra"
+  - "Les eines d'enumeració (nmap) i força bruta (hydra) poden ser útils en aquest escenari"
+  - "Alguns serveis permeten accedir amb usuaris per defecte, com anonymous"

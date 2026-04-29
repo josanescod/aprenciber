@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ScenarioOut(BaseModel):
@@ -9,6 +9,7 @@ class ScenarioOut(BaseModel):
     description: str
     difficulty: str
     tags: str | None
+    hints: list[str] = Field(default_factory=list)
 
     model_config = {"from_attributes": True}
 

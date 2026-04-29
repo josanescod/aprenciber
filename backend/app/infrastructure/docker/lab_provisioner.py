@@ -6,19 +6,25 @@ from docker.errors import ImageNotFound
 
 from app.infrastructure.scenarios.scenario_loader import Scenario
 
+from docker.types import IPAMConfig, IPAMPool
+
 
 class LabProvisioner:
     def __init__(self, docker_client: DockerClient):
         self.docker_client = docker_client
 
-    def start_lab(self, scenario: Scenario) -> dict:
+    def start_lab(
+        self, scenario: Scenario, subnet: str | None = None, gateway: str | None = None
+    ) -> dict:
         lab_short_id = str(uuid4())[:12]
 
         created_containers = {}
         created_networks = {}
 
         try:
-            created_networks = self._create_networks(lab_short_id, scenario)
+            created_networks = self._create_networks(
+                lab_short_id, scenario, subnet=subnet, gateway=gateway
+            )
             created_containers = self._create_containers(
                 lab_short_id, scenario, created_networks
             )
@@ -37,21 +43,45 @@ class LabProvisioner:
             )
             raise RuntimeError(f"Error creating lab: {exc}") from exc
 
-    def _create_networks(self, lab_short_id: str, scenario: Scenario) -> dict:
+    def _create_networks(
+        self,
+        lab_short_id: str,
+        scenario: Scenario,
+        subnet: str | None = None,
+        gateway: str | None = None,
+    ) -> dict:
         networks_info = {}
 
         for logical_name, net_config in scenario.networks.items():
             docker_network_name = f"aprenciber-lab-{lab_short_id}-{logical_name}"
 
+            # Usar subnet dinàmica si es passa, sinó la del YAML, sinó deixar que Docker decideixi
+            effective_subnet = subnet or net_config.subnet
+            effective_gateway = gateway or net_config.gateway
+
+            ipam_config = None
+            if effective_subnet:
+
+                ipam_config = IPAMConfig(
+                    pool_configs=[
+                        IPAMPool(
+                            subnet=effective_subnet,
+                            gateway=effective_gateway,
+                        )
+                    ]
+                )
+
             network = self.docker_client.networks.create(
                 name=docker_network_name,
                 driver=net_config.driver,
+                ipam=ipam_config,
             )
 
             networks_info[logical_name] = {
                 "name": docker_network_name,
                 "id": network.id,
                 "driver": net_config.driver,
+                "subnet": effective_subnet,
             }
 
         return networks_info

@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppLayout from '../components/AppLayout.vue'
-import { getLab, deleteLab, submitFlag } from '../services/api.js'
+import { getLab, deleteLab, submitFlag, getScenario } from '../services/api.js'
 import { authStore } from '../stores/auth.js'
 
 const route = useRoute()
@@ -19,6 +19,7 @@ const flagSubmitting = ref(false)
 const flagResult = ref(null)
 
 const labId = route.params.id
+const scenario = ref(null)
 
 async function prepareTerminal(rawUrl) {
   terminalUrl.value = rawUrl
@@ -28,6 +29,11 @@ async function prepareTerminal(rawUrl) {
 onMounted(async () => {
   try {
     lab.value = await getLab(labId, authStore.session?.access_token)
+    
+    scenario.value = await getScenario(
+      lab.value.scenario_id,
+      authStore.session?.access_token
+    )
     if (lab.value.status === 'running' && lab.value.terminal_url) {
       await prepareTerminal(lab.value.terminal_url)
     }
@@ -138,8 +144,7 @@ async function sendFlag() {
           </div>
           <button
             class="bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded transition-colors"
-            :disabled="lab.status !== 'running'"
-            @click="removeLab">
+            :disabled="lab.status !== 'running'" @click="removeLab">
             Eliminar laboratori
           </button>
         </div>
@@ -150,17 +155,27 @@ async function sendFlag() {
         <p v-if="lab.status === 'removed'" class="text-gray-500 mb-4">
           Aquest laboratori ha estat eliminat.
         </p>
+        <!-- Pistes -->
+        <div v-if="scenario?.hints?.length && lab.status === 'running'" class="mb-6">
+          <h2 class="font-semibold mb-2">Pistes</h2>
 
+          <details class="border rounded p-3 bg-gray-50">
+            <summary class="cursor-pointer text-sm font-medium text-gray-700">
+              Mostrar pistes
+            </summary>
+
+            <ul class="mt-3 list-disc list-inside text-sm text-gray-600 space-y-1">
+              <li v-for="hint in scenario.hints" :key="hint">
+                {{ hint }}
+              </li>
+            </ul>
+          </details>
+        </div>
         <!-- Terminal -->
         <div v-if="lab.status === 'running'" class="mb-6">
           <h2 class="font-semibold mb-2">Terminal</h2>
           <div v-if="terminalReady" class="rounded overflow-hidden border border-gray-300" style="height: 500px;">
-            <iframe
-              :src="terminalUrl"
-              class="w-full h-full"
-              frameborder="0"
-              allow="clipboard-read; clipboard-write"
-            />
+            <iframe :src="terminalUrl" class="w-full h-full" frameborder="0" allow="clipboard-read; clipboard-write" />
           </div>
           <div v-else class="text-sm text-gray-500">
             Preparant terminal...
@@ -170,27 +185,23 @@ async function sendFlag() {
         <div v-if="lab.status === 'running'" class="mb-6">
           <h2 class="font-semibold mb-2">Enviar flag</h2>
 
-          <div v-if="flagResult?.correct" class="mb-3 p-3 bg-green-50 border border-green-200 rounded text-green-800 text-sm">
+          <div v-if="flagResult?.correct"
+            class="mb-3 p-3 bg-green-50 border border-green-200 rounded text-green-800 text-sm">
             {{ flagResult.message }}
           </div>
 
-          <div v-if="flagResult && !flagResult.correct" class="mb-3 p-3 bg-red-50 border border-red-200 rounded text-red-800 text-sm">
+          <div v-if="flagResult && !flagResult.correct"
+            class="mb-3 p-3 bg-red-50 border border-red-200 rounded text-red-800 text-sm">
             {{ flagResult.message }}
           </div>
 
           <div v-if="!flagResult?.correct" class="flex gap-2">
-            <input
-              v-model="flagInput"
-              type="text"
-              placeholder="FLAG{...}"
+            <input v-model="flagInput" type="text" placeholder="FLAG{...}"
               class="flex-1 border rounded px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-              :disabled="flagSubmitting"
-              @keyup.enter="sendFlag"
-            />
+              :disabled="flagSubmitting" @keyup.enter="sendFlag" />
             <button
               class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded text-sm transition-colors"
-              :disabled="flagSubmitting || !flagInput.trim()"
-              @click="sendFlag">
+              :disabled="flagSubmitting || !flagInput.trim()" @click="sendFlag">
               {{ flagSubmitting ? 'Enviant...' : 'Enviar' }}
             </button>
           </div>
