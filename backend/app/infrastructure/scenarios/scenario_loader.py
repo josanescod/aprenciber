@@ -27,6 +27,8 @@ class ContainerConfig:
     role: str
     networks: list[str] = field(default_factory=list)
     ports: list[int] = field(default_factory=list)
+    build_context: str | None = None
+    dockerfile: str = "Dockerfile"
 
 
 @dataclass
@@ -71,6 +73,8 @@ def _parse_containers(raw: dict[str, Any]) -> dict[str, ContainerConfig]:
             role=config["role"],
             networks=config.get("networks", []),
             ports=config.get("ports", []),
+            build_context=config.get("build_context"),
+            dockerfile=config.get("dockerfile", "Dockerfile"),
         )
     return result
 

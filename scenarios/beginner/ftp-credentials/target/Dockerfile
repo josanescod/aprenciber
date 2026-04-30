@@ -10,9 +10,7 @@ RUN echo "FLAG{demo_ftp_credentials}" > /home/magnus/flag.txt \
     && chown magnus:magnus /home/magnus/flag.txt \
     && chmod 644 /home/magnus/flag.txt
 
-RUN mkdir -p /var/run/vsftpd/empty
-
-RUN mkdir -p /var/ftp/public
+RUN mkdir -p /var/run/vsftpd/empty /var/ftp/public
 
 RUN echo "magnus sempre reutilitza els seus passwords d'escacs" > /var/ftp/public/note.txt
 
@@ -37,15 +35,14 @@ RUN chown root:root /var/ftp \
     && chown -R ftp:ftp /var/ftp/public \
     && chmod -R 755 /var/ftp/public
 
-RUN cat > /etc/vsftpd.banner << 'EOF'
-#############################################
-#                                           #
-#      Benvingut al servidor FTP intern     #
-#                                           #
-#############################################
-
-
-EOF
+RUN printf '%s\n' \
+    '#############################################' \
+    '#                                           #' \
+    '#      Benvingut al servidor FTP intern     #' \
+    '#                                           #' \
+    '#############################################' \
+    '' \
+    > /etc/vsftpd.banner
 
 COPY vsftpd.conf /etc/vsftpd.conf
 

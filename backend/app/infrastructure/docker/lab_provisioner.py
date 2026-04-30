@@ -142,8 +142,8 @@ class LabProvisioner:
             self._ensure_image_exists(
                 image=image,
                 scenario_path=scenario_path,
-                build_context=None,
-                dockerfile="Dockerfile",
+                build_context=container_config.build_context,
+                dockerfile=container_config.dockerfile,
             )
 
             container_name = f"aprenciber-lab-{lab_short_id}-{logical_name}"
