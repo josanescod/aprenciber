@@ -15,8 +15,8 @@ class TtydManager:
 
         process = subprocess.Popen(
             [
-                "ttyd",
-                "--writable",
+                "/usr/local/bin/ttyd",
+                "-W",
                 "-i",
                 "127.0.0.1",
                 "-p",
@@ -26,7 +26,7 @@ class TtydManager:
                 "--client-option",
                 "fontSize=16",
                 "--",
-                "docker",
+                "/usr/bin/docker",
                 "exec",
                 "-it",
                 container_name,

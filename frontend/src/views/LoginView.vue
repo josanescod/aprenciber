@@ -39,6 +39,8 @@ async function handleLogin() {
     <p v-if="authStore.error" class="text-red-600 mt-4">
       {{ authStore.error }}
     </p>
-
+    <p class="mt-4 text-sm text-center">
+      No estàs registrat? <RouterLink to="/register" class="text-blue-600 hover:underline">Registrarse</RouterLink>
+    </p>
   </main>
 </template>

@@ -40,3 +40,17 @@ export async function getUser() {
 
   return data.user
 }
+
+
+export async function register(email, password, fullName) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: fullName, role: 'student' },
+      emailRedirectTo: `${import.meta.env.VITE_APP_URL}/auth/callback`
+    }
+  })
+  if (error) throw error
+  return data
+}

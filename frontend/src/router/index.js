@@ -8,6 +8,8 @@ import LabView from '../views/LabView.vue'
 import ProgressView from '../views/ProgressView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 import ScenarioDetailView from '../views/ScenarioDetailView.vue'
+import RegisterView from '../views/RegisterView.vue'
+import AuthCallbackView from '../views/AuthCallbackView.vue'
 
 const routes = [
   {
@@ -20,6 +22,19 @@ const routes = [
     component: LoginView,
     meta: { requiresGuest: true },
   },
+  {
+    path: '/register',
+    name: 'register',
+    component: RegisterView,
+    meta: { requiresGuest: true },
+
+  },
+  {
+    path: '/auth/callback',
+    name: 'auth-callback',
+    component: AuthCallbackView
+  },
+
   {
     path: '/dashboard',
     name: 'dashboard',
