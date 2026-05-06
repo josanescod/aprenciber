@@ -18,7 +18,7 @@ async function handleRegister() {
         await register(email.value, password.value, fullName.value)
         success.value = true
     } catch (err) {
-        error.value = err.message || 'Error al crear la cuenta'
+        error.value = err.message || 'Error al crear el compte'
     } finally {
         loading.value = false
     }
@@ -28,7 +28,7 @@ async function handleRegister() {
 
 <template>
     <main class="max-w-md mx-auto p-6">
-        <h1 class="text-2xl font-bold mb-4">Crear cuenta</h1>
+        <h1 class="text-2xl font-bold mb-4">Crear compte</h1>
 
         <form class="space-y-4" @submit.prevent="handleRegister">
             <div>
@@ -46,7 +46,7 @@ async function handleRegister() {
             </div>
 
             <button type="submit" class="bg-black text-white px-4 py-2 rounded" :disabled="loading">
-                {{ loading ? 'Creando cuenta...' : 'Registrarse' }}
+                {{ loading ? 'Creant compte...' : 'Registrar-se' }}
             </button>
         </form>
 

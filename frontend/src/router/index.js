@@ -14,7 +14,9 @@ import AuthCallbackView from '../views/AuthCallbackView.vue'
 const routes = [
   {
     path: '/',
-    redirect: '/dashboard',
+    name: 'home',
+    component: ()=> import('../views/HomeView.vue'),
+    meta: {requiresGuest: true},
   },
   {
     path: '/login',

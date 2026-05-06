@@ -21,6 +21,7 @@ from app.models.submission import Submission
 from app.repositories.submission_repository import SubmissionRepository
 from app.repositories.user_progress_repository import UserProgressRepository
 from app.schemas.submission import FlagSubmitRequest, FlagSubmitResponse
+from app.core.config import settings
 
 
 router = APIRouter(prefix="/api/labs", tags=["labs"])
@@ -130,7 +131,10 @@ def start_lab(
         ttyd_manager = TtydManager()
         try:
             port, pid = ttyd_manager.start_terminal(attacker_name)
-            saved_lab.terminal_url = f"http://localhost:{port}"
+            if settings.app_env == "production":
+                saved_lab.terminal_url = f"/terminal/{port}/"
+            else:
+                saved_lab.terminal_url = f"http://localhost:{port}"
             saved_lab.terminal_pid = pid
             lab_repo.update(saved_lab)
             ttyd_process_registry.register(saved_lab.id, pid)
