@@ -7,6 +7,7 @@ class AuthenticatedUser:
     id: str
     email: str
     full_name: str | None = None
+    role: str = "student"  # acces míni, rol amb menys permisos
 
 
 class AuthProvider(Protocol):

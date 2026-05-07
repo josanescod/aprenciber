@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.dependencies.auth import get_current_auth_user
+from app.dependencies.auth import get_current_auth_user, require_admin, require_teacher
 from app.dependencies.db import get_db
 from app.schemas.user import UserMeResponse
 from app.services.profile_service import ProfileService
@@ -18,3 +18,29 @@ def get_me(
     service = ProfileService()
     profile = service.get_or_create_profile(db, auth_user)
     return UserMeResponse.model_validate(profile)
+
+
+# endpoints prova rols
+# @router.get("/me/role-test")
+# def role_test(
+#     auth_user: AuthenticatedUser = Depends(get_current_auth_user),
+# ):
+#     return {
+#         "id": auth_user.id,
+#         "email": auth_user.email,
+#         "role": auth_user.role,
+#     }
+
+
+# @router.get("/admin-only")
+# def admin_only(
+#     auth_user: AuthenticatedUser = Depends(require_admin),
+# ):
+#     return {"message": f"Hola admin {auth_user.email}"}
+
+
+# @router.get("/teacher-only")
+# def teacher_only(
+#     auth_user: AuthenticatedUser = Depends(require_teacher),
+# ):
+#     return {"message": f"Hola teacher {auth_user.email}"}
