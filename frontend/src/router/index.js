@@ -15,8 +15,8 @@ const routes = [
   {
     path: '/',
     name: 'home',
-    component: ()=> import('../views/HomeView.vue'),
-    meta: {requiresGuest: true},
+    component: () => import('../views/HomeView.vue'),
+    meta: { requiresGuest: true },
   },
   {
     path: '/login',
@@ -68,6 +68,18 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/admin',
+    name: 'admin',
+    component: () => import('../views/AdminView.vue'), // lazy load perquè no carregui aquesta vista per a tots els usuaris
+    meta: { requiresAuth: true, requiresRole: 'admin' }
+  },
+  {
+    path: '/teacher',
+    name: 'teacher',
+    component: () => import('../views/TeacherView.vue'),
+    meta: { requiresAuth: true, requiresRole: 'teacher' }, // lazy load perquè no carregui aquesta vista per a tots els usuaris
+  },
+  {
     path: '/:pathMatch(.*)*', // Qualsevol ruta que no coincideixi amb les anteriors redirigir a NotFoundView
     name: 'not-found',
     component: NotFoundView,
@@ -92,6 +104,17 @@ router.beforeEach(async (to) => {
 
   if (to.meta.requiresGuest && isAuthenticated) {
     return { name: 'dashboard' }
+  }
+
+  // Guardar el rol si la ruta requereix un rol específic
+  if (to.meta.requiresRole) {
+    const role = authStore.profile?.role
+    if (to.meta.requiresRole === 'admin' && role !== 'admin') {
+      return { name: 'dashboard' }
+    }
+    if (to.meta.requiresRole === 'teacher' && !['teacher', 'admin'].includes(role)) {
+      return { name: 'dashboard' }
+    }
   }
 })
 

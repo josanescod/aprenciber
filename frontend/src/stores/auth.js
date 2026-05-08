@@ -58,4 +58,16 @@ export const authStore = reactive({
     this.profile = null
     this.error = null
   },
+
+  // propietats per als rols 
+  
+  get isAdmin() {
+    return this.profile?.role === 'admin'
+  },
+  get isTeacher() {
+    return this.profile?.role === 'teacher'
+  },
+  get isStudent() {
+    return this.profile?.role === 'student'
+  },
 })

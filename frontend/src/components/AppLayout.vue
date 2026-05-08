@@ -1,3 +1,16 @@
+<script setup>
+import { useRouter } from 'vue-router'
+import { authStore } from '../stores/auth'
+
+const router = useRouter()
+
+async function handleLogout() {
+  await authStore.logout()
+  router.push({ name: 'home' })
+}
+</script>
+
+
 <template>
   <div class="min-h-screen flex flex-col">
 
@@ -14,10 +27,16 @@
         <RouterLink to="/progress" class="hover:underline" active-class="font-semibold">
           Progrés
         </RouterLink>
+        <RouterLink v-if="authStore.isAdmin" to="/admin" class="hover:underline" active-class="font-semibold">
+          Admin
+        </RouterLink>
+        <RouterLink v-if="authStore.isTeacher" to="/teacher" class="hover:underline" active-class="font-semibold">
+          Professor
+        </RouterLink>
       </nav>
 
       <div class="flex items-center gap-4 text-sm">
-        <span class="text-gray-500">{{authStore.profile?.full_name || authStore.profile?.email }}</span>
+        <span class="text-gray-500">{{ authStore.profile?.full_name || authStore.profile?.email }}</span>
         <button class="border rounded px-3 py-1 hover:bg-gray-100" @click="handleLogout">
           Sortir
         </button>
@@ -30,15 +49,3 @@
 
   </div>
 </template>
-
-<script setup>
-import { useRouter } from 'vue-router'
-import { authStore } from '../stores/auth'
-
-const router = useRouter()
-
-async function handleLogout() {
-  await authStore.logout()
-  router.push({ name: 'home' })
-}
-</script>
