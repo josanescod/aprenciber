@@ -3,9 +3,10 @@ from sqlalchemy.orm import Session
 
 from app.dependencies.auth import get_current_auth_user, require_admin, require_teacher
 from app.dependencies.db import get_db
-from app.schemas.user import UserMeResponse
+from app.schemas.user import UserMeResponse, UserListItem
 from app.services.profile_service import ProfileService
 from app.services.auth_provider import AuthenticatedUser
+from app.repositories.profile_repository import ProfileRepository
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -20,27 +21,10 @@ def get_me(
     return UserMeResponse.model_validate(profile)
 
 
-# endpoints prova rols
-# @router.get("/me/role-test")
-# def role_test(
-#     auth_user: AuthenticatedUser = Depends(get_current_auth_user),
-# ):
-#     return {
-#         "id": auth_user.id,
-#         "email": auth_user.email,
-#         "role": auth_user.role,
-#     }
-
-
-# @router.get("/admin-only")
-# def admin_only(
-#     auth_user: AuthenticatedUser = Depends(require_admin),
-# ):
-#     return {"message": f"Hola admin {auth_user.email}"}
-
-
-# @router.get("/teacher-only")
-# def teacher_only(
-#     auth_user: AuthenticatedUser = Depends(require_teacher),
-# ):
-#     return {"message": f"Hola teacher {auth_user.email}"}
+@router.get("/", response_model=list[UserListItem])
+def list_users(
+    _auth_user: AuthenticatedUser = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> list[UserListItem]:
+    repo = ProfileRepository()
+    return repo.get_all(db)

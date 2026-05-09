@@ -69,9 +69,24 @@ const routes = [
   },
   {
     path: '/admin',
-    name: 'admin',
-    component: () => import('../views/AdminView.vue'), // lazy load perquè no carregui aquesta vista per a tots els usuaris
-    meta: { requiresAuth: true, requiresRole: 'admin' }
+    component: () => import('../views/AdminLayout.vue'),
+    meta: { requiresAuth: true, requiresRole: 'admin' },
+    children: [
+      {
+        path: '',
+        redirect: { name: 'admin-users' },
+      },
+      {
+        path: 'users',
+        name: 'admin-users',
+        component: () => import('../views/admin/AdminUsersView.vue'),
+      },
+      {
+        path: 'scenarios',
+        name: 'admin-scenarios',
+        component: () => import('../views/admin/AdminScenariosView.vue'),
+      },
+    ],
   },
   {
     path: '/teacher',

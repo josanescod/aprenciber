@@ -42,3 +42,7 @@ class ProfileRepository:
         db.commit()
         db.refresh(profile)
         return profile
+
+    def get_all(self, db: Session) -> list[Profile]:
+        stmt = select(Profile).order_by(Profile.created_at.desc())
+        return list(db.execute(stmt).scalars().all())

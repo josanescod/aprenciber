@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, String
+from sqlalchemy import DateTime, String, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.db.base import Base
@@ -20,3 +20,4 @@ class Profile(Base):
         nullable=False,
         default=lambda: datetime.now(timezone.utc),
     )
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
