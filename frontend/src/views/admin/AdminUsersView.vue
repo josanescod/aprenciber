@@ -18,6 +18,21 @@ async function fetchUsers() {
         loading.value = false
     }
 }
+async function updateRole(userId, newRole) {
+    try {
+        const token = authStore.session?.access_token
+        const updated = await apiFetch(`/api/users/${userId}/role`, token, {
+            method: 'PATCH',
+            body: JSON.stringify({ role: newRole }),
+        })
+        console.log('updated:', updated)
+        const index = users.value.findIndex(u => u.id === userId)
+        if (index !== -1) users.value.splice(index, 1, updated)
+    } catch (err) {
+        console.error('Error actualitzant rol:', err)
+    }
+}
+
 
 onMounted(fetchUsers)
 </script>
@@ -40,7 +55,15 @@ onMounted(fetchUsers)
                     <tr v-for="user in users" :key="user.id" class="hover:bg-gray-50">
                         <td class="px-4 py-3">{{ user.full_name ?? '—' }}</td>
                         <td class="px-4 py-3 text-gray-600">{{ user.email }}</td>
-                        <td class="px-4 py-3">{{ user.role }}</td>
+                        <td class="px-4 py-3">
+                            <select v-if="user.role !== 'admin'" :value="user.role"
+                                class="text-sm border rounded px-2 py-1"
+                                @change="updateRole(user.id, $event.target.value)">
+                                <option value="student">Student</option>
+                                <option value="teacher">Teacher</option>
+                            </select>
+                            <span v-else class="text-sm font-medium">Admin</span>
+                        </td>
                         <td class="px-4 py-3">{{ user.is_active ? 'Actiu' : 'Inactiu' }}</td>
                     </tr>
                 </tbody>

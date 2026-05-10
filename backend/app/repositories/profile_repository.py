@@ -46,3 +46,9 @@ class ProfileRepository:
     def get_all(self, db: Session) -> list[Profile]:
         stmt = select(Profile).order_by(Profile.created_at.desc())
         return list(db.execute(stmt).scalars().all())
+
+    def update_role(self, db: Session, *, profile: Profile, role: str) -> Profile:
+        profile.role = role
+        db.commit()
+        db.refresh(profile)
+        return profile
