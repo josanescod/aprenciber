@@ -52,3 +52,11 @@ class ProfileRepository:
         db.commit()
         db.refresh(profile)
         return profile
+
+    def update_active(
+        self, db: Session, *, profile: Profile, is_active: bool
+    ) -> Profile:
+        profile.is_active = is_active
+        db.commit()
+        db.refresh(profile)
+        return profile

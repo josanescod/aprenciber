@@ -3,7 +3,12 @@ from sqlalchemy.orm import Session
 
 from app.dependencies.auth import get_current_auth_user, require_admin, require_teacher
 from app.dependencies.db import get_db
-from app.schemas.user import UserMeResponse, UserListItem, UserRoleUpdate
+from app.schemas.user import (
+    UserMeResponse,
+    UserListItem,
+    UserRoleUpdate,
+    UserActiveUpdate,
+)
 from app.services.profile_service import ProfileService
 from app.services.auth_provider import AuthenticatedUser
 from app.repositories.profile_repository import ProfileRepository
@@ -44,3 +49,22 @@ def update_user_role(
     if profile.id == current_user.id and body.role != "admin":
         raise HTTPException(status_code=400, detail="No pots canviar el teu propi rol")
     return repo.update_role(db, profile=profile, role=body.role)
+
+
+# desactivar usuaris
+@router.patch("/{user_id}/active", response_model=UserListItem)
+def update_user_active(
+    user_id: str,
+    body: UserActiveUpdate,
+    current_user: AuthenticatedUser = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> UserListItem:
+    repo = ProfileRepository()
+    profile = repo.get_by_id(db, user_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Usuari no trobat")
+    if profile.id == current_user.id:
+        raise HTTPException(
+            status_code=400, detail="No pots desactivar el teu propi usuari"
+        )
+    return repo.update_active(db, profile=profile, is_active=body.is_active)

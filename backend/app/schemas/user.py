@@ -32,3 +32,7 @@ class UserRoleUpdate(BaseModel):
         if v not in allowed:
             raise ValueError(f"Rol no vàlid. Allowed: {allowed}")
         return v
+
+
+class UserActiveUpdate(BaseModel):
+    is_active: bool

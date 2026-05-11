@@ -33,6 +33,19 @@ async function updateRole(userId, newRole) {
     }
 }
 
+async function toggleActive(userId, currentValue) {
+    try {
+        const token = authStore.session?.access_token
+        const updated = await apiFetch(`/api/users/${userId}/active`, token, {
+            method: 'PATCH',
+            body: JSON.stringify({ is_active: !currentValue }),
+        })
+        const index = users.value.findIndex(u => u.id === userId)
+        if (index !== -1) users.value.splice(index, 1, updated)
+    } catch (err) {
+        console.error('Error canviant estat:', err)
+    }
+}
 
 onMounted(fetchUsers)
 </script>
@@ -64,7 +77,14 @@ onMounted(fetchUsers)
                             </select>
                             <span v-else class="text-sm font-medium">Admin</span>
                         </td>
-                        <td class="px-4 py-3">{{ user.is_active ? 'Actiu' : 'Inactiu' }}</td>
+                        <td class="px-4 py-3">
+                            <button v-if="user.role !== 'admin'" class="text-xs px-2 py-1 rounded font-medium"
+                                :class="user.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+                                @click="toggleActive(user.id, user.is_active)">
+                                {{ user.is_active ? 'Actiu' : 'Inactiu' }}
+                            </button>
+                            <span v-else class="text-xs px-2 py-1">—</span>
+                        </td>
                     </tr>
                 </tbody>
             </table>

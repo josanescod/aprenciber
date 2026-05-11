@@ -43,6 +43,11 @@ def get_current_auth_user(
     profile = ProfileRepository().get_by_id(db, auth_user.id)
     if profile:
         auth_user.role = profile.role
+        if not profile.is_active:  # usuaris desactivats no poden accedir a la app
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Compte desactivat",
+            )
 
     return auth_user
 
