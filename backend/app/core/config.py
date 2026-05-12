@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     supabase_url: str
     supabase_publishable_key: str
     flag_secret: str
+    supabase_service_role_key: str
 
     model_config = SettingsConfigDict(
         env_file=str(ENV_FILE),

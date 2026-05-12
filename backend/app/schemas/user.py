@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator, Field
 
 
 class UserMeResponse(BaseModel):
@@ -36,3 +36,18 @@ class UserRoleUpdate(BaseModel):
 
 class UserActiveUpdate(BaseModel):
     is_active: bool
+
+
+class UserCreate(BaseModel):
+    email: str
+    password: str = Field(min_length=8)
+    full_name: str | None = None
+    role: str = "student"
+
+    @field_validator("role")
+    @classmethod
+    def role_must_be_valid(cls, v: str) -> str:
+        allowed = {"student", "teacher", "admin"}
+        if v not in allowed:
+            raise ValueError(f"Rol no vàlid. Allowed: {allowed}")
+        return v

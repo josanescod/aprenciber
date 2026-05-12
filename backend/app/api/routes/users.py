@@ -8,10 +8,12 @@ from app.schemas.user import (
     UserListItem,
     UserRoleUpdate,
     UserActiveUpdate,
+    UserCreate,
 )
 from app.services.profile_service import ProfileService
 from app.services.auth_provider import AuthenticatedUser
 from app.repositories.profile_repository import ProfileRepository
+from app.infrastructure.auth.supabase_auth_service import SupabaseAuthService
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -68,3 +70,32 @@ def update_user_active(
             status_code=400, detail="No pots desactivar el teu propi usuari"
         )
     return repo.update_active(db, profile=profile, is_active=body.is_active)
+
+
+# creacio d'usuaris per part de l'admin
+@router.post("/", response_model=UserListItem, status_code=201)
+def create_user(
+    body: UserCreate,
+    _: AuthenticatedUser = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> UserListItem:
+    supabase = SupabaseAuthService()
+    try:
+        auth_user = supabase.create_user(
+            email=body.email,
+            password=body.password,
+            full_name=body.full_name,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=400, detail=f"Error creant usuari a Supabase: {e}"
+        )
+    repo = ProfileRepository()
+    profile = repo.create(
+        db,
+        profile_id=auth_user.id,
+        email=body.email,
+        full_name=body.full_name,
+        role=body.role,
+    )
+    return UserListItem.model_validate(profile)

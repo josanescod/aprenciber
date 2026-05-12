@@ -6,6 +6,9 @@ import { authStore } from '../../stores/auth'
 const users = ref([])
 const loading = ref(true)
 const error = ref(null)
+const showModal = ref(false)
+const newUser = ref({ email: '', full_name: '', password: '', role: 'student' })
+const creating = ref(false)
 
 async function fetchUsers() {
     try {
@@ -47,14 +50,74 @@ async function toggleActive(userId, currentValue) {
     }
 }
 
+async function createUser() {
+    if (!newUser.value.email || !newUser.value.password) return
+    creating.value = true
+    try {
+        const token = authStore.session?.access_token
+        const created = await apiFetch('/api/users/', token, {
+            method: 'POST',
+            body: JSON.stringify(newUser.value),
+        })
+        users.value.unshift(created)
+        showModal.value = false
+        newUser.value = { email: '', full_name: '', password: '', role: 'student' }
+    } catch (err) {
+        console.error('Error creant usuari:', err)
+    } finally {
+        creating.value = false
+    }
+}
+
 onMounted(fetchUsers)
 </script>
 
 <template>
+    <!-- Modal -->
+    <div v-if="showModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+            <h2 class="text-lg font-bold mb-4">Nou usuari</h2>
+
+            <div class="flex flex-col gap-3">
+                <input v-model="newUser.full_name" type="text" placeholder="Nom complet"
+                    class="border rounded px-3 py-2 text-sm" />
+                <input v-model="newUser.email" type="email" placeholder="Email"
+                    class="border rounded px-3 py-2 text-sm" />
+                <input v-model="newUser.password" type="password" placeholder="Contrasenya"
+                    class="border rounded px-3 py-2 text-sm" />
+                <p v-if="newUser.password && newUser.password.length < 8" class="text-red-500 text-xs -mt-2">
+                    Mínim 8 caràcters
+                </p>
+                <select v-model="newUser.role" class="border rounded px-3 py-2 text-sm">
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+
+            <div class="flex justify-end gap-2 mt-6">
+                <button class="text-sm px-4 py-2 rounded border hover:bg-gray-100" @click="showModal = false">
+                    Cancel·lar
+                </button>
+                <!-- <button class="border rounded px-3 py-1 hover:bg-gray-100" :disabled="creating" -->
+                <button class="border rounded px-3 py-1 hover:bg-gray-100"
+                    :disabled="creating || !newUser.email || !newUser.password || newUser.password.length < 8" @click="createUser">
+                    {{ creating ? 'Creant...' : 'Crear' }}
+                </button>
+            </div>
+        </div>
+    </div>
     <div>
         <p v-if="loading" class="text-gray-500 text-sm">Carregant...</p>
         <p v-else-if="error" class="text-red-600 text-sm">{{ error }}</p>
+
         <div v-else class="overflow-x-auto rounded border border-black">
+
+            <div class="flex justify-end">
+                <button class="border rounded px-3 py-1 hover:bg-gray-100" @click="showModal = true">
+                    Nou usuari
+                </button>
+            </div>
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 border-b border-black text-gray-500 text-left">
                     <tr>
