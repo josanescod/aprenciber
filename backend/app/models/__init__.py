@@ -3,6 +3,7 @@ from app.models.profile import Profile
 from app.models.scenario import Scenario
 from app.models.submission import Submission
 from app.models.user_progress import UserProgress
+from app.models.classroom import Classroom, ClassroomMember
 
 __all__ = [
     "Profile",
@@ -10,4 +11,6 @@ __all__ = [
     "LabInstance",
     "Submission",
     "UserProgress",
+    "Classroom",
+    "ClassroomMember",
 ]
