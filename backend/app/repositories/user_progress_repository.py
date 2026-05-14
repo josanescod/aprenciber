@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from app.models.user_progress import UserProgress
+from sqlalchemy import select
+from app.models.scenario import Scenario
 
 
 class UserProgressRepository:
@@ -55,3 +57,11 @@ class UserProgressRepository:
         self.db.commit()
         self.db.refresh(progress)
         return progress
+
+    # mostrar progres de diferents usuaris
+    def get_by_users(self, user_ids: list[str]) -> list[UserProgress]:
+        if not user_ids:
+            return []
+        return (
+            self.db.query(UserProgress).filter(UserProgress.user_id.in_(user_ids)).all()
+        )

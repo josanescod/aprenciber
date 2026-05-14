@@ -26,5 +26,25 @@ class MemberResponse(BaseModel):
     classroom_id: str
     student_id: str
     joined_at: datetime
+    model_config = ConfigDict(from_attributes=True)
 
+
+# esquema per mostrar alumnes
+class StudentResponse(BaseModel):
+    id: str
+    email: str
+    full_name: str | None
+    is_active: bool
+    model_config = ConfigDict(from_attributes=True)
+
+
+# esquema de progrés
+class StudentProgressResponse(BaseModel):
+    student_id: str
+    student_email: str
+    student_name: str | None
+    scenario_id: int
+    attempts: int
+    success: bool
+    last_attempt_at: datetime | None
     model_config = ConfigDict(from_attributes=True)

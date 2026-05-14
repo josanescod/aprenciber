@@ -2,6 +2,7 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.models.classroom import Classroom, ClassroomMember
+from app.models.profile import Profile
 
 
 class ClassroomRepository:
@@ -52,3 +53,11 @@ class ClassroomRepository:
             ClassroomMember.student_id == student_id,
         )
         return db.execute(stmt).scalar_one_or_none() is not None
+
+    def get_members(self, db: Session, classroom_id: str) -> list[Profile]:
+        stmt = (
+            select(Profile)
+            .join(ClassroomMember, ClassroomMember.student_id == Profile.id)
+            .where(ClassroomMember.classroom_id == classroom_id)
+        )
+        return list(db.execute(stmt).scalars().all())

@@ -7,10 +7,13 @@ from app.schemas.classroom import (
     ClassroomResponse,
     AddMemberRequest,
     MemberResponse,
+    StudentResponse,
+    StudentProgressResponse,
 )
 from app.services.auth_provider import AuthenticatedUser
 from app.repositories.classroom_repository import ClassroomRepository
 from app.repositories.profile_repository import ProfileRepository
+from app.repositories.user_progress_repository import UserProgressRepository
 
 router = APIRouter(prefix="/api/classrooms", tags=["classrooms"])
 
@@ -66,3 +69,56 @@ def add_member(
     if repo.is_member(db, classroom_id=classroom_id, student_id=body.student_id):
         raise HTTPException(status_code=400, detail="L'alumne ja és membre de l'aula")
     return repo.add_member(db, classroom_id=classroom_id, student_id=body.student_id)
+
+
+@router.get("/{classroom_id}/members", response_model=list[StudentResponse])
+def list_members(
+    classroom_id: str,
+    current_user: AuthenticatedUser = Depends(require_teacher),
+    db: Session = Depends(get_db),
+) -> list[StudentResponse]:
+    repo = ClassroomRepository()
+    classroom = repo.get_by_id(db, classroom_id)
+    if not classroom:
+        raise HTTPException(status_code=404, detail="No s'ha trobat l'aula")
+    if classroom.teacher_id != current_user.id:
+        raise HTTPException(
+            status_code=403, detail="No ets el professor d'aquesta aula"
+        )
+    return repo.get_members(db, classroom_id=classroom_id)
+
+
+@router.get("/{classroom_id}/progress", response_model=list[StudentProgressResponse])
+def get_classroom_progress(
+    classroom_id: str,
+    current_user: AuthenticatedUser = Depends(require_teacher),
+    db: Session = Depends(get_db),
+) -> list[StudentProgressResponse]:
+    repo = ClassroomRepository()
+    classroom = repo.get_by_id(db, classroom_id)
+    if not classroom:
+        raise HTTPException(status_code=404, detail="Aula no trobada")
+    if classroom.teacher_id != current_user.id:
+        raise HTTPException(
+            status_code=403, detail="No ets el professor d'aquesta aula"
+        )
+    members = repo.get_members(db, classroom_id=classroom_id)
+    if not members:
+        return []
+    student_ids = [m.id for m in members]
+    student_map = {m.id: m for m in members}
+    progress_repo = UserProgressRepository(db)
+    all_progress = progress_repo.get_by_users(student_ids)
+    return [
+        StudentProgressResponse(
+            student_id=p.user_id,
+            student_email=student_map[p.user_id].email,
+            student_name=student_map[p.user_id].full_name,
+            scenario_id=p.scenario_id,
+            attempts=p.attempts,
+            success=p.success,
+            last_attempt_at=p.last_attempt_at,
+        )
+        for p in all_progress
+        if p.user_id in student_map
+    ]
