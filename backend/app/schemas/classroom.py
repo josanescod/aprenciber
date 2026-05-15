@@ -48,3 +48,9 @@ class StudentProgressResponse(BaseModel):
     success: bool
     last_attempt_at: datetime | None
     model_config = ConfigDict(from_attributes=True)
+
+
+# esquema per editar aules
+class ClassroomUpdate(BaseModel):
+    name: str
+    description: str | None = None

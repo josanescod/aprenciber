@@ -61,3 +61,18 @@ class ClassroomRepository:
             .where(ClassroomMember.classroom_id == classroom_id)
         )
         return list(db.execute(stmt).scalars().all())
+
+    def update(
+        self, db: Session, *, classroom: Classroom, name: str, description: str | None
+    ) -> Classroom:
+        classroom.name = name
+        classroom.description = description
+        db.commit()
+        db.refresh(classroom)
+        return classroom
+
+    def deactivate(self, db: Session, *, classroom: Classroom) -> Classroom:
+        classroom.is_active = False
+        db.commit()
+        db.refresh(classroom)
+        return classroom

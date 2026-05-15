@@ -9,6 +9,7 @@ from app.schemas.classroom import (
     MemberResponse,
     StudentResponse,
     StudentProgressResponse,
+    ClassroomUpdate,
 )
 from app.services.auth_provider import AuthenticatedUser
 from app.repositories.classroom_repository import ClassroomRepository
@@ -122,3 +123,40 @@ def get_classroom_progress(
         for p in all_progress
         if p.user_id in student_map
     ]
+
+
+@router.patch("/{classroom_id}", response_model=ClassroomResponse)
+def update_classroom(
+    classroom_id: str,
+    body: ClassroomUpdate,
+    current_user: AuthenticatedUser = Depends(require_teacher),
+    db: Session = Depends(get_db),
+) -> ClassroomResponse:
+    repo = ClassroomRepository()
+    classroom = repo.get_by_id(db, classroom_id)
+    if not classroom:
+        raise HTTPException(status_code=404, detail="Aula no trobada")
+    if classroom.teacher_id != current_user.id:
+        raise HTTPException(
+            status_code=403, detail="No ets el professor d'aquesta aula"
+        )
+    return repo.update(
+        db, classroom=classroom, name=body.name, description=body.description
+    )
+
+
+@router.delete("/{classroom_id}", status_code=204)
+def delete_classroom(
+    classroom_id: str,
+    current_user: AuthenticatedUser = Depends(require_teacher),
+    db: Session = Depends(get_db),
+) -> None:
+    repo = ClassroomRepository()
+    classroom = repo.get_by_id(db, classroom_id)
+    if not classroom:
+        raise HTTPException(status_code=404, detail="Aula no trobada")
+    if classroom.teacher_id != current_user.id:
+        raise HTTPException(
+            status_code=403, detail="No ets el professor d'aquesta aula"
+        )
+    repo.deactivate(db, classroom=classroom)

@@ -91,8 +91,24 @@ const routes = [
   {
     path: '/teacher',
     name: 'teacher',
-    component: () => import('../views/TeacherView.vue'),
-    meta: { requiresAuth: true, requiresRole: 'teacher' }, // lazy load perquè no carregui aquesta vista per a tots els usuaris
+    component: () => import('../views/TeacherLayout.vue'),
+    meta: { requiresAuth: true, requiresRole: 'teacher' }, 
+    children: [
+    {
+      path: '',
+      redirect: { name: 'teacher-classrooms' },
+    },
+    {
+      path: 'classrooms',
+      name: 'teacher-classrooms',
+      component: () => import('../views/teacher/TeacherClassroomsView.vue'),
+    },
+    {
+      path: 'classrooms/:id',
+      name: 'teacher-classroom-detail',
+      component: () => import('../views/teacher/TeacherClassroomDetailView.vue'),
+    },
+  ],
   },
   {
     path: '/:pathMatch(.*)*', // Qualsevol ruta que no coincideixi amb les anteriors redirigir a NotFoundView
