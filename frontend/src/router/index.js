@@ -90,12 +90,12 @@ const routes = [
   },
   {
     path: '/teacher',
-    name: 'teacher',
     component: () => import('../views/TeacherLayout.vue'),
     meta: { requiresAuth: true, requiresRole: 'teacher' }, 
     children: [
     {
       path: '',
+      name: 'teacher',
       redirect: { name: 'teacher-classrooms' },
     },
     {

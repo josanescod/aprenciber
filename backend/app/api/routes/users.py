@@ -99,3 +99,13 @@ def create_user(
         role=body.role,
     )
     return UserListItem.model_validate(profile)
+
+
+@router.get("/by-role/{role}", response_model=list[UserListItem])
+def list_users_by_role(
+    role: str,
+    _: AuthenticatedUser = Depends(require_teacher),
+    db: Session = Depends(get_db),
+) -> list[UserListItem]:
+    repo = ProfileRepository()
+    return repo.get_by_role(db, role=role)

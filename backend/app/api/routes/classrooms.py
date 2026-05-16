@@ -160,3 +160,21 @@ def delete_classroom(
             status_code=403, detail="No ets el professor d'aquesta aula"
         )
     repo.deactivate(db, classroom=classroom)
+
+
+@router.delete("/{classroom_id}/members/{student_id}", status_code=204)
+def remove_member(
+    classroom_id: str,
+    student_id: str,
+    current_user: AuthenticatedUser = Depends(require_teacher),
+    db: Session = Depends(get_db),
+) -> None:
+    repo = ClassroomRepository()
+    classroom = repo.get_by_id(db, classroom_id)
+    if not classroom:
+        raise HTTPException(status_code=404, detail="Aula no trobada")
+    if classroom.teacher_id != current_user.id:
+        raise HTTPException(
+            status_code=403, detail="No ets el professor d'aquesta aula"
+        )
+    repo.remove_member(db, classroom_id=classroom_id, student_id=student_id)

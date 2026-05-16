@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 from app.models.classroom import Classroom, ClassroomMember
 from app.models.profile import Profile
@@ -26,9 +26,25 @@ class ClassroomRepository:
         db.refresh(classroom)
         return classroom
 
-    def get_by_teacher(self, db: Session, teacher_id: str) -> list[Classroom]:
-        stmt = select(Classroom).where(Classroom.teacher_id == teacher_id)
-        return list(db.execute(stmt).scalars().all())
+    def get_by_teacher(self, db: Session, teacher_id: str) -> list[dict]:
+        # pylint: disable=not-callable
+        stmt = (
+            select(Classroom, func.count(ClassroomMember.id).label("member_count"))  #
+            .outerjoin(ClassroomMember, ClassroomMember.classroom_id == Classroom.id)
+            .where(Classroom.teacher_id == teacher_id)
+            .group_by(Classroom.id)
+        )
+        rows = db.execute(stmt).all()
+        return [
+            {
+                **{
+                    c.key: getattr(row.Classroom, c.key)
+                    for c in Classroom.__table__.columns
+                },
+                "member_count": row.member_count,
+            }
+            for row in rows
+        ]
 
     def get_by_id(self, db: Session, classroom_id: str) -> Classroom | None:
         stmt = select(Classroom).where(Classroom.id == classroom_id)
@@ -76,3 +92,13 @@ class ClassroomRepository:
         db.commit()
         db.refresh(classroom)
         return classroom
+
+    def remove_member(self, db: Session, *, classroom_id: str, student_id: str) -> None:
+        stmt = select(ClassroomMember).where(
+            ClassroomMember.classroom_id == classroom_id,
+            ClassroomMember.student_id == student_id,
+        )
+        member = db.execute(stmt).scalar_one_or_none()
+        if member:
+            db.delete(member)
+            db.commit()

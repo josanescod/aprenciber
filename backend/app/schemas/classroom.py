@@ -14,6 +14,7 @@ class ClassroomResponse(BaseModel):
     teacher_id: str
     is_active: bool
     created_at: datetime
+    member_count: int = 0  # nombre estudiants per aula
     model_config = ConfigDict(from_attributes=True)
 
 

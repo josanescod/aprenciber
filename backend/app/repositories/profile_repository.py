@@ -60,3 +60,7 @@ class ProfileRepository:
         db.commit()
         db.refresh(profile)
         return profile
+
+    def get_by_role(self, db: Session, role: str) -> list[Profile]:
+        stmt = select(Profile).where(Profile.role == role).order_by(Profile.email)
+        return list(db.execute(stmt).scalars().all())
