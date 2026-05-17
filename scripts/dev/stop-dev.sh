@@ -1,4 +1,5 @@
 #! /bin/bash
+set -e
 pkill -f "pnpm --prefix frontend dev"
 pkill -f "fastapi dev"
 docker stop aprenciber-postgres && docker rm -f aprenciber-postgres

@@ -17,3 +17,8 @@ class ScenarioOut(BaseModel):
 class ScenarioDetail(ScenarioOut):
     yaml_path: str
     created_at: datetime
+
+
+class ScenarioAdminOut(ScenarioOut):
+    is_active: bool
+    created_at: datetime

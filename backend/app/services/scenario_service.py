@@ -21,3 +21,15 @@ class ScenarioService:
                 detail=f"Scenario {scenario_id} not found",
             )
         return scenario
+
+    def list_all_scenarios(self) -> list[Scenario]:
+        return self.repository.get_all()
+
+    def toggle_active(self, scenario_id: int) -> Scenario:
+        scenario = self.repository.get_by_id_any(scenario_id)
+        if not scenario:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Scenario {scenario_id} not found",
+            )
+        return self.repository.update_active(scenario, not scenario.is_active)

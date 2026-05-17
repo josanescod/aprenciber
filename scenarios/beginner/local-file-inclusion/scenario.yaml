@@ -1,0 +1,40 @@
+id: "lfi-02"
+name: "Arbitrary local file inclusion"
+description: "Descobreix una vulnerabilitat LFI, enumera usuaris, troba credencials per accedir al sistema."
+difficulty: "easy"
+tags:
+  - "lfi"
+  - "information-disclosure"
+  - "ssh"
+active: true
+
+networks:
+  external:
+    driver: "bridge"
+
+containers:
+  attacker:
+    image: "aprenciber-lfi-attacker:demo"
+    build_context: "attacker"
+    dockerfile: "Dockerfile"
+    role: "attacker"
+    networks:
+      - "external"
+
+  target:
+    image: "aprenciber-lfi-target:demo"
+    build_context: "target"
+    dockerfile: "Dockerfile"
+    role: "target"
+    networks:
+      - "external"
+    ports:
+      - 80
+      - 22
+
+flag:
+  path: "/opt/secret/flag.txt"
+  
+hints:
+  - "Les eines de fuzzing web (ffuf) i accés remot (ssh) poden ser útils en aquest escenari."
+  - "La flag pot estar una mica amagada, pot ser d'ajuda utilitzar una eina per buscar fitxers al sistema."

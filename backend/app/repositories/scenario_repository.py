@@ -28,3 +28,15 @@ class ScenarioRepository:
             .filter(Scenario.slug == slug, Scenario.is_active == True)
             .first()
         )
+
+    def get_all(self) -> list[Scenario]:
+        return self.db.query(Scenario).order_by(Scenario.created_at.asc()).all()
+
+    def update_active(self, scenario: Scenario, is_active: bool) -> Scenario:
+        scenario.is_active = is_active
+        self.db.commit()
+        self.db.refresh(scenario)
+        return scenario
+
+    def get_by_id_any(self, scenario_id: int) -> Scenario | None:
+        return self.db.query(Scenario).filter(Scenario.id == scenario_id).first()
