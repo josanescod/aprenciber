@@ -17,12 +17,13 @@ def get_my_progress(
 ):
     rows = (
         db.query(Scenario, UserProgress)
-        .outerjoin(
+        .join(
             UserProgress,
             (UserProgress.scenario_id == Scenario.id)
             & (UserProgress.user_id == auth_user.id),
         )
-        .filter(Scenario.is_active == True)
+        # Els usuaris que han completat un escenari han de poder veurel al panell de progres independement de si està desactivat?
+        # .filter(Scenario.is_active == True)
         .order_by(Scenario.id.asc())
         .all()
     )
