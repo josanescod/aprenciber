@@ -1,3 +1,4 @@
+import time
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -304,3 +305,93 @@ def submit_flag(
         correct=True,
         message="Flag correcta! Has completat l'escenari.",
     )
+
+
+# endpoint reiniciar lab
+@router.post("/{lab_id}/restart", status_code=200)
+def restart_lab(
+    lab_id: int,
+    auth_user: AuthenticatedUser = Depends(get_current_auth_user),
+    db: Session = Depends(get_db),
+):
+    lab_repo = LabInstanceRepository(db)
+    lab = lab_repo.get_by_id(lab_id)
+
+    if lab is None or lab.user_id != auth_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Lab not found"
+        )
+
+    if lab.status != "running":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="El laboratori no està actiu",
+        )
+
+    # Carregar el YAML de l'escenari
+    scenario_repo = ScenarioRepository(db)
+    scenario = scenario_repo.get_by_id_any(lab.scenario_id)
+    scenario_yaml_path = Path(scenario.yaml_path)
+    scenario_data = load_scenario(scenario_yaml_path)
+
+    docker_client = get_docker_client()
+    provisioner = LabProvisioner(docker_client)
+
+    # Aturar ttyd
+    ttyd_manager = TtydManager()
+    pid = ttyd_process_registry.get_pid(lab_id) or lab.terminal_pid
+    if pid:
+        ttyd_manager.stop_terminal(pid)
+        ttyd_process_registry.unregister(lab_id)
+
+    # Eliminar contenidors i xarxes actuals
+    provisioner.cleanup(
+        containers_info=lab.containers_info,
+        networks_info=lab.networks_info,
+    )
+
+    # Recalcular subnet
+    subnet_index = (lab.id % 254) + 1
+    subnet = f"10.10.{subnet_index}.0/29"
+    gateway = f"10.10.{subnet_index}.1"
+
+    # Tornar a crear contenidors
+    try:
+        lab_data = provisioner.start_lab(scenario_data, subnet=subnet, gateway=gateway)
+    except RuntimeError as exc:
+        lab.status = "failed"
+        lab_repo.update(lab)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exc),
+        ) from exc
+
+    # Actualitzar BD
+    lab.containers_info = lab_data["containers_info"]
+    lab.networks_info = lab_data["networks_info"]
+    lab_repo.update(lab)
+
+    # Reinjectar la mateixa flag
+    provisioner.inject_flag(
+        containers_info=lab_data["containers_info"],
+        flag_value=lab.flag_value,
+        flag_path=scenario_data.flag.path,
+    )
+
+    # Reiniciar ttyd
+    attacker_name = lab_data["containers_info"].get("attacker", {}).get("name")
+    if attacker_name:
+        try:
+            port, pid = ttyd_manager.start_terminal(attacker_name)
+            if settings.app_env == "production":
+                lab.terminal_url = f"/terminal/{port}/"
+            else:
+                lab.terminal_url = f"http://localhost:{port}"
+            lab.terminal_pid = pid
+            lab_repo.update(lab)
+            ttyd_process_registry.register(lab_id, pid)
+            print(f"[ttyd] Restarted for lab {lab_id} on port {port} (pid {pid})")
+        except (OSError, ValueError) as exc:
+            print(f"[ttyd] Warning: could not restart terminal: {exc}")
+
+    return {"message": "Laboratori reiniciat correctament"}

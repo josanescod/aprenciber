@@ -55,7 +55,7 @@ class LabProvisioner:
         for logical_name, net_config in scenario.networks.items():
             docker_network_name = f"aprenciber-lab-{lab_short_id}-{logical_name}"
 
-            # Usar subnet dinàmica si es passa, sinó la del YAML, sinó deixar que Docker decideixi
+            # Utilitzar subxarxa dinàmica si es passa, sinó la del YAML, sinó deixar que Docker decideixi
             effective_subnet = subnet or net_config.subnet
             effective_gateway = gateway or net_config.gateway
 
@@ -75,6 +75,7 @@ class LabProvisioner:
                 name=docker_network_name,
                 driver=net_config.driver,
                 ipam=ipam_config,
+                internal=True,
             )
 
             networks_info[logical_name] = {
@@ -243,3 +244,13 @@ class LabProvisioner:
 
         if errors:
             raise RuntimeError("Errors during lab cleanup: " + " | ".join(errors))
+
+    # reiniciar contenidors
+    def restart_containers(self, containers_info: dict) -> None:
+        for container_info in containers_info.values():
+            container_name = container_info.get("name")
+            if not container_name:
+                continue
+            container = self.docker_client.containers.get(container_name)
+            container.restart()
+            print(f"[docker] Restarted container: {container_name}")

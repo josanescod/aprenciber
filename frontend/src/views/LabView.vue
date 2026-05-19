@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppLayout from '../components/AppLayout.vue'
-import { getLab, deleteLab, submitFlag, getScenario } from '../services/api.js'
+import { getLab, deleteLab, submitFlag, getScenario, apiFetch } from '../services/api.js'
 import { authStore } from '../stores/auth.js'
 
 const route = useRoute()
@@ -21,6 +21,8 @@ const flagResult = ref(null)
 const labId = route.params.id
 const scenario = ref(null)
 
+const restarting = ref(false)
+
 async function prepareTerminal(rawUrl) {
   terminalUrl.value = rawUrl
   terminalReady.value = true
@@ -29,7 +31,7 @@ async function prepareTerminal(rawUrl) {
 onMounted(async () => {
   try {
     lab.value = await getLab(labId, authStore.session?.access_token)
-    
+
     scenario.value = await getScenario(
       lab.value.scenario_id,
       authStore.session?.access_token
@@ -116,6 +118,33 @@ async function sendFlag() {
   }
 }
 
+async function restartLab() {
+  restarting.value = true
+  try {
+    const token = authStore.session?.access_token
+    await apiFetch(`/api/labs/${labId}/restart`, token, {
+      method: 'POST',
+    })
+    terminalReady.value = false
+    terminalUrl.value = null
+    await new Promise(resolve => setTimeout(resolve, 4000))
+    lab.value = await getLab(labId, token)
+    terminalUrl.value = lab.value.terminal_url
+    terminalReady.value = true
+  } catch (err) {
+    console.error(err)
+    // No mostrem alert — el restart pot haver funcionat igualment
+    terminalReady.value = false
+    terminalUrl.value = null
+    await new Promise(resolve => setTimeout(resolve, 4000))
+    lab.value = await getLab(labId, authStore.session?.access_token)
+    terminalUrl.value = lab.value.terminal_url
+    terminalReady.value = true
+  } finally {
+    restarting.value = false
+  }
+}
+
 </script>
 
 <template>
@@ -142,13 +171,19 @@ async function sendFlag() {
               </span>
             </p>
           </div>
-          <button
-            class="bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded transition-colors"
-            :disabled="lab.status !== 'running'" @click="removeLab">
-            Eliminar laboratori
-          </button>
+          <div class="flex gap-2">
+            <button
+              class="border rounded px-4 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              :disabled="lab.status !== 'running' || restarting" @click="restartLab">
+              {{ restarting ? 'Reiniciant...' : 'Reiniciar laboratori' }}
+            </button>
+            <button
+              class="bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded transition-colors"
+              :disabled="lab.status !== 'running'" @click="removeLab">
+              Eliminar laboratori
+            </button>
+          </div>
         </div>
-
         <p v-if="lab.status === 'expired'" class="text-orange-500 mb-4">
           Aquest laboratori ha expirat.
         </p>
