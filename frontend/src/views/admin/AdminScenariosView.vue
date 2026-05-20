@@ -48,7 +48,7 @@ async function uploadScenario(event) {
     const formData = new FormData()
     formData.append('file', file)
 
-    await fetch('http://127.0.0.1:8000/api/scenarios/admin/upload', {
+    await fetch('/api/scenarios/admin/upload', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       body: formData,

@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 import zipfile
 import io
+import yaml
 
 
 from app.dependencies.db import get_db
@@ -77,11 +78,56 @@ def upload_scenario(
 
     with zf:
         names = zf.namelist()
-        if not any("scenario.yaml" in n for n in names):
+
+        scenario_yaml_path = next(
+            (name for name in names if Path(name).name == "scenario.yaml"),
+            None,
+        )
+
+        if scenario_yaml_path is None:
             raise HTTPException(
-                status_code=400, detail="El ZIP ha de contenir un fitxer scenario.yaml"
+                status_code=400,
+                detail="El ZIP ha de contenir un fitxer scenario.yaml",
             )
-        zf.extractall(SCENARIOS_DIR)
+
+        # Llegir scenario.yaml per saber la dificultat
+        try:
+            with zf.open(scenario_yaml_path) as scenario_file:
+                scenario_data = yaml.safe_load(scenario_file)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=400,
+                detail="No s'ha pogut llegir el fitxer scenario.yaml",
+            ) from exc
+
+        difficulty = scenario_data.get("difficulty")
+
+        difficulty_dirs = {
+            "easy": "beginner",
+            "medium": "medium",
+            "hard": "hard",
+        }
+
+        if difficulty not in difficulty_dirs:
+            raise HTTPException(
+                status_code=400,
+                detail="La dificultat ha de ser easy, medium o hard",
+            )
+
+        target_dir = SCENARIOS_DIR / difficulty_dirs[difficulty]
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+        # Evitar rutes perilloses dins del ZIP
+        for member in zf.infolist():
+            member_path = Path(member.filename)
+
+            if member_path.is_absolute() or ".." in member_path.parts:
+                raise HTTPException(
+                    status_code=400,
+                    detail="El ZIP conté rutes no permeses",
+                )
+
+        zf.extractall(target_dir)
 
     # Sincronitzar escenaris a la BD
     count = sync_scenarios_to_db(db)
@@ -93,8 +139,10 @@ def upload_scenario(
         docker_client = get_docker_client()
         provisioner = LabProvisioner(docker_client)
         scenarios = load_all_scenarios()
+
         for scenario in scenarios:
             scenario_path = Path(scenario.yaml_path).parent
+
             for container in scenario.containers.values():
                 if container.build_context:
                     provisioner._ensure_image_exists(
@@ -103,6 +151,7 @@ def upload_scenario(
                         build_context=container.build_context,
                         dockerfile=container.dockerfile,
                     )
+
     except Exception as e:
         print(f"[upload] Warning: error construint imatges: {e}")
 

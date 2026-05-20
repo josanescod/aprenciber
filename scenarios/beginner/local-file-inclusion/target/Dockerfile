@@ -210,4 +210,4 @@ RUN chown -R www-data:www-data /var/www/html
 
 EXPOSE 80 22
 
-CMD service ssh start && apachectl -D FOREGROUND
+CMD ["/bin/bash", "-c", "service ssh start && exec apachectl -D FOREGROUND"]
