@@ -32,6 +32,7 @@ class ClassroomRepository:
             select(Classroom, func.count(ClassroomMember.id).label("member_count"))  #
             .outerjoin(ClassroomMember, ClassroomMember.classroom_id == Classroom.id)
             .where(Classroom.teacher_id == teacher_id)
+            .where(Classroom.is_active == True)
             .group_by(Classroom.id)
         )
         rows = db.execute(stmt).all()

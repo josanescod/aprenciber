@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { apiFetch } from '../../services/api'
 import { authStore } from '../../stores/auth'
 
@@ -9,6 +9,19 @@ const error = ref(null)
 const showModal = ref(false)
 const newUser = ref({ email: '', full_name: '', password: '', role: 'student' })
 const creating = ref(false)
+
+const filterRole = ref('')
+const filterActive = ref('')
+
+const filteredUsers = computed(() => {
+    return users.value.filter(u => {
+        const roleMatch = filterRole.value === '' || u.role === filterRole.value
+        const activeMatch = filterActive.value === '' ||
+            (filterActive.value === 'active' && u.is_active) ||
+            (filterActive.value === 'inactive' && !u.is_active)
+        return roleMatch && activeMatch
+    })
+})
 
 async function fetchUsers() {
     try {
@@ -21,6 +34,7 @@ async function fetchUsers() {
         loading.value = false
     }
 }
+
 async function updateRole(userId, newRole) {
     try {
         const token = authStore.session?.access_token
@@ -28,7 +42,6 @@ async function updateRole(userId, newRole) {
             method: 'PATCH',
             body: JSON.stringify({ role: newRole }),
         })
-        console.log('updated:', updated)
         const index = users.value.findIndex(u => u.id === userId)
         if (index !== -1) users.value.splice(index, 1, updated)
     } catch (err) {
@@ -77,7 +90,6 @@ onMounted(fetchUsers)
     <div v-if="showModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
             <h2 class="text-lg font-bold mb-4">Nou usuari</h2>
-
             <div class="flex flex-col gap-3">
                 <input v-model="newUser.full_name" type="text" placeholder="Nom complet"
                     class="border rounded px-3 py-2 text-sm" />
@@ -94,30 +106,43 @@ onMounted(fetchUsers)
                     <option value="admin">Admin</option>
                 </select>
             </div>
-
             <div class="flex justify-end gap-2 mt-6">
                 <button class="text-sm px-4 py-2 rounded border hover:bg-gray-100" @click="showModal = false">
                     Cancel·lar
                 </button>
-                <!-- <button class="border rounded px-3 py-1 hover:bg-gray-100" :disabled="creating" -->
                 <button class="border rounded px-3 py-1 hover:bg-gray-100"
-                    :disabled="creating || !newUser.email || !newUser.password || newUser.password.length < 8" @click="createUser">
+                    :disabled="creating || !newUser.email || !newUser.password || newUser.password.length < 8"
+                    @click="createUser">
                     {{ creating ? 'Creant...' : 'Crear' }}
                 </button>
             </div>
         </div>
     </div>
+
     <div>
         <p v-if="loading" class="text-gray-500 text-sm">Carregant...</p>
         <p v-else-if="error" class="text-red-600 text-sm">{{ error }}</p>
 
         <div v-else class="overflow-x-auto rounded border border-black">
-
-            <div class="flex justify-end">
+            <div class="flex items-center justify-between p-3">
+                <div class="flex gap-2">
+                    <select v-model="filterRole" class="text-sm border rounded px-2 py-1">
+                        <option value="">Tots els rols</option>
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    <select v-model="filterActive" class="text-sm border rounded px-2 py-1">
+                        <option value="">Tots els estats</option>
+                        <option value="active">Actiu</option>
+                        <option value="inactive">Inactiu</option>
+                    </select>
+                </div>
                 <button class="border rounded px-3 py-1 hover:bg-gray-100" @click="showModal = true">
                     Nou usuari
                 </button>
             </div>
+
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 border-b border-black text-gray-500 text-left">
                     <tr>
@@ -128,7 +153,7 @@ onMounted(fetchUsers)
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-black">
-                    <tr v-for="user in users" :key="user.id" class="hover:bg-gray-50">
+                    <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50">
                         <td class="px-4 py-3">{{ user.full_name ?? '—' }}</td>
                         <td class="px-4 py-3 text-gray-600">{{ user.email }}</td>
                         <td class="px-4 py-3">
@@ -147,6 +172,11 @@ onMounted(fetchUsers)
                                 {{ user.is_active ? 'Actiu' : 'Inactiu' }}
                             </button>
                             <span v-else class="text-xs px-2 py-1">—</span>
+                        </td>
+                    </tr>
+                    <tr v-if="filteredUsers.length === 0">
+                        <td colspan="4" class="px-4 py-6 text-center text-gray-400">
+                            No hi ha usuaris amb aquests filtres
                         </td>
                     </tr>
                 </tbody>

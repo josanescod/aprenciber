@@ -17,14 +17,13 @@ const allStudents = ref([])
 const selectedStudentId = ref('')
 const adding = ref(false)
 
-
 async function fetchData() {
   try {
     const token = authStore.session?.access_token
-      ;[members.value, progress.value] = await Promise.all([
-        apiFetch(`/api/classrooms/${classroomId}/members`, token),
-        apiFetch(`/api/classrooms/${classroomId}/progress`, token),
-      ])
+    ;[members.value, progress.value] = await Promise.all([
+      apiFetch(`/api/classrooms/${classroomId}/members`, token),
+      apiFetch(`/api/classrooms/${classroomId}/progress`, token),
+    ])
   } catch (err) {
     error.value = 'Error carregant les dades'
     console.error(err)
@@ -79,7 +78,6 @@ async function removeMember(studentId) {
   }
 }
 
-
 onMounted(fetchData)
 </script>
 
@@ -89,8 +87,8 @@ onMounted(fetchData)
     <p v-else-if="error" class="text-red-600 text-sm">{{ error }}</p>
     <div v-else>
       <div class="flex justify-end mb-4">
-        <button class="border rounded px-3 py-1 hover:bg-gray-100" @click="openAddModal">
-          Afegir alumne
+        <button class="border rounded px-3 py-1 hover:bg-gray-100 text-sm" @click="openAddModal">
+          + Afegir alumne
         </button>
       </div>
 
@@ -111,7 +109,8 @@ onMounted(fetchData)
             Sense activitat encara
           </div>
           <div v-else class="flex flex-col gap-1">
-            <div v-for="p in getProgress(member.id)" :key="p.scenario_id" class="flex items-center gap-2 text-xs">
+            <div v-for="p in getProgress(member.id)" :key="p.scenario_id"
+              class="flex items-center gap-2 text-xs">
               <span>Escenari {{ p.scenario_id }}</span>
               <span class="px-2 py-0.5 rounded font-medium"
                 :class="p.success ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'">
@@ -123,6 +122,7 @@ onMounted(fetchData)
         </div>
       </div>
     </div>
+
     <!-- Modal afegir alumne -->
     <div v-if="showAddModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
