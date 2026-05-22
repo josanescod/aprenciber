@@ -1,10 +1,24 @@
 #!/bin/bash
+set -e
 
-docker build -t aprenciber-ftp-attacker:demo \
-  scenarios/beginner/ftp-credentials/attacker
-docker build -t aprenciber-ftp-target:demo \
-  scenarios/beginner/ftp-credentials/target
-docker build -t aprenciber-lfi-attacker:demo \
-  scenarios/beginner/local-file-inclusion/attacker
-docker build -t aprenciber-lfi-target:demo \
-  scenarios/beginner/local-file-inclusion/target
+SCENARIOS_DIR="scenarios"
+
+echo "Buscant escenaris escenaris a $SCENARIOS_DIR..."
+
+for yaml in $(find "$SCENARIOS_DIR" -name "scenario.yaml" | sort); do
+    scenario_dir=$(dirname "$yaml")
+    echo "[build] Processant: $yaml"
+
+    for role in attacker target; do
+        context="$scenario_dir/$role"
+        if [ -d "$context" ]; then
+            image_name=$(grep "image:" "$yaml" | grep "$role" -A0 | head -1 | awk '{print $2}' | tr -d '"')
+            if [ -n "$image_name" ]; then
+                echo "Building $image_name from $context"
+                docker build -t "$image_name" "$context"
+            fi
+        fi
+    done
+done
+
+echo "OK"

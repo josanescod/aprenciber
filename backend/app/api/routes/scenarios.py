@@ -78,71 +78,66 @@ def upload_scenario(
 
     with zf:
         names = zf.namelist()
+        print(f"[upload] ZIP contents: {names}")  # ← afegeix això
 
-        scenario_yaml_path = next(
-            (name for name in names if Path(name).name == "scenario.yaml"),
-            None,
-        )
-
-        if scenario_yaml_path is None:
+        # Verificar scenario.yaml
+        yaml_files = [n for n in names if n.endswith("scenario.yaml")]
+        if not yaml_files:
             raise HTTPException(
-                status_code=400,
-                detail="El ZIP ha de contenir un fitxer scenario.yaml",
+                status_code=400, detail="El ZIP ha de contenir un fitxer scenario.yaml"
             )
 
-        # Llegir scenario.yaml per saber la dificultat
+        # Llegir dificultat del YAML
         try:
-            with zf.open(scenario_yaml_path) as scenario_file:
-                scenario_data = yaml.safe_load(scenario_file)
+            with zf.open(yaml_files[0]) as f:
+                scenario_data = yaml.safe_load(f)
         except Exception as exc:
             raise HTTPException(
-                status_code=400,
-                detail="No s'ha pogut llegir el fitxer scenario.yaml",
+                status_code=400, detail="No s'ha pogut llegir el fitxer scenario.yaml"
             ) from exc
 
         difficulty = scenario_data.get("difficulty")
-
-        difficulty_dirs = {
-            "easy": "beginner",
-            "medium": "medium",
-            "hard": "hard",
-        }
-
+        difficulty_dirs = {"easy": "beginner", "medium": "medium", "hard": "hard"}
         if difficulty not in difficulty_dirs:
             raise HTTPException(
-                status_code=400,
-                detail="La dificultat ha de ser easy, medium o hard",
+                status_code=400, detail="La dificultat ha de ser easy, medium o hard"
             )
 
-        target_dir = SCENARIOS_DIR / difficulty_dirs[difficulty]
-        target_dir.mkdir(parents=True, exist_ok=True)
+        # Verificar estructura de carpetes
+        scenario_dir = yaml_files[0].replace("scenario.yaml", "")
+        if not any(n.startswith(f"{scenario_dir}attacker/") for n in names):
+            raise HTTPException(status_code=400, detail="Falta la carpeta attacker/")
+        if not any(n.startswith(f"{scenario_dir}target/") for n in names):
+            raise HTTPException(status_code=400, detail="Falta la carpeta target/")
+        if not any(n == f"{scenario_dir}attacker/Dockerfile" for n in names):
+            raise HTTPException(status_code=400, detail="Falta attacker/Dockerfile")
+        if not any(n == f"{scenario_dir}target/Dockerfile" for n in names):
+            raise HTTPException(status_code=400, detail="Falta target/Dockerfile")
 
-        # Evitar rutes perilloses dins del ZIP
+        # Verificar rutes perilloses
         for member in zf.infolist():
             member_path = Path(member.filename)
-
             if member_path.is_absolute() or ".." in member_path.parts:
                 raise HTTPException(
-                    status_code=400,
-                    detail="El ZIP conté rutes no permeses",
+                    status_code=400, detail="El ZIP conté rutes no permeses"
                 )
 
+        # Extreure al directori correcte segons dificultat
+        target_dir = SCENARIOS_DIR / difficulty_dirs[difficulty]
+        target_dir.mkdir(parents=True, exist_ok=True)
         zf.extractall(target_dir)
 
-    # Sincronitzar escenaris a la BD
+    # Sincronitzar BD
     count = sync_scenarios_to_db(db)
 
-    # Construir imatges Docker dels nous escenaris
+    # Construir imatges Docker
     try:
         from app.infrastructure.scenarios.scenario_loader import load_all_scenarios
 
         docker_client = get_docker_client()
         provisioner = LabProvisioner(docker_client)
-        scenarios = load_all_scenarios()
-
-        for scenario in scenarios:
+        for scenario in load_all_scenarios():
             scenario_path = Path(scenario.yaml_path).parent
-
             for container in scenario.containers.values():
                 if container.build_context:
                     provisioner._ensure_image_exists(
@@ -151,7 +146,6 @@ def upload_scenario(
                         build_context=container.build_context,
                         dockerfile=container.dockerfile,
                     )
-
     except Exception as e:
         print(f"[upload] Warning: error construint imatges: {e}")
 

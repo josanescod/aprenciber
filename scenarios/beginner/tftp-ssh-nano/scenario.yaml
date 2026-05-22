@@ -1,0 +1,47 @@
+
+id: "tftp-ssh-nano-01"
+name: "TFTP Backup Leak"
+description: "Descobreix un servei TFTP exposat per UDP, recupera una clau SSH filtrada i escala privilegis abusant de nano amb sudo."
+difficulty: "easy"
+tags:
+  - "tftp"
+  - "udp"
+  - "ssh"
+  - "privilege-escalation"
+  - "gtfobins"
+
+active: true
+
+networks:
+  external:
+    driver: "bridge"
+
+containers:
+  attacker:
+    image: "aprenciber-tftp-attacker:demo"
+    build_context: "attacker"
+    dockerfile: "Dockerfile"
+    role: "attacker"
+    networks:
+      - "external"
+
+  target:
+    image: "aprenciber-tftp-target:demo"
+    build_context: "target"
+    dockerfile: "Dockerfile"
+    role: "target"
+    networks:
+      - "external"
+    ports:
+      - 69
+      - 2222
+
+flag:
+  path: "/root/secret/flag.txt"
+
+hints:
+  - "No tots els serveis visibles utilitzen TCP."
+  - "Fes un escaneig UDP per descobrir serveis ocults."
+  - "TFTP no permet llistar directoris de forma estàndard, però pots descarregar fitxers si coneixes el nom."
+  - "Els fitxers d'historial i les claus SSH poden donar pistes importants."
+  - "El recurs GTFOBins pot ser útil després d'obtenir accés al sistema."

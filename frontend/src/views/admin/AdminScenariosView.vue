@@ -48,16 +48,22 @@ async function uploadScenario(event) {
     const formData = new FormData()
     formData.append('file', file)
 
-    await fetch('/api/scenarios/admin/upload', {
+    const response = await fetch('http://127.0.0.1:8000/api/scenarios/admin/upload', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       body: formData,
     })
 
+    if (!response.ok) {
+      const data = await response.json()
+      uploadError.value = data.detail || 'Error pujant l\'escenari'
+      return
+    }
+
     await fetchScenarios()
     showUploadModal.value = false
   } catch (err) {
-    uploadError.value = 'Error pujant l\'escenari'
+    uploadError.value = 'Error de connexió'
     console.error(err)
   } finally {
     uploading.value = false
