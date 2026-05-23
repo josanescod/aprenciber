@@ -88,7 +88,7 @@ onMounted(fetchData)
     <div v-else>
       <div class="flex justify-end mb-4">
         <button class="border rounded px-3 py-1 hover:bg-gray-100 text-sm" @click="openAddModal">
-          + Afegir alumne
+          Afegir alumne
         </button>
       </div>
 
@@ -134,13 +134,14 @@ onMounted(fetchData)
           </option>
         </select>
         <div class="flex justify-end gap-2 mt-6">
-          <button class="text-sm px-4 py-2 rounded border hover:bg-gray-100" @click="showAddModal = false">
-            Cancel·lar
-          </button>
-          <button class="text-sm px-4 py-2 rounded bg-black text-white hover:bg-gray-800 disabled:opacity-50"
+          <button class="border rounded px-3 py-1 hover:bg-gray-100"
             :disabled="adding || !selectedStudentId" @click="addMember">
             {{ adding ? 'Afegint...' : 'Afegir' }}
           </button>
+          <button class="text-sm px-4 py-2 rounded border hover:bg-gray-100" @click="showAddModal = false">
+            Cancel·lar
+          </button>
+          
         </div>
       </div>
     </div>

@@ -132,13 +132,14 @@ onMounted(fetchClassrooms)
             class="border rounded px-3 py-2 text-sm" />
         </div>
         <div class="flex justify-end gap-2 mt-6">
-          <button class="text-sm px-4 py-2 rounded border hover:bg-gray-100" @click="showCreateModal = false">
-            Cancel·lar
-          </button>
-          <button class="text-sm px-4 py-2 rounded bg-black text-white hover:bg-gray-800 disabled:opacity-50"
+          <button class="border rounded px-3 py-1 hover:bg-gray-100"
             :disabled="saving || !newClassroom.name" @click="createClassroom">
             {{ saving ? 'Creant...' : 'Crear' }}
           </button>
+          <button class="text-sm px-4 py-2 rounded border hover:bg-gray-100" @click="showCreateModal = false">
+            Cancel·lar
+          </button>
+          
         </div>
       </div>
     </div>

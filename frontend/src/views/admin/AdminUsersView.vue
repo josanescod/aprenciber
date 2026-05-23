@@ -107,14 +107,15 @@ onMounted(fetchUsers)
                 </select>
             </div>
             <div class="flex justify-end gap-2 mt-6">
-                <button class="text-sm px-4 py-2 rounded border hover:bg-gray-100" @click="showModal = false">
-                    Cancel·lar
-                </button>
                 <button class="border rounded px-3 py-1 hover:bg-gray-100"
                     :disabled="creating || !newUser.email || !newUser.password || newUser.password.length < 8"
                     @click="createUser">
                     {{ creating ? 'Creant...' : 'Crear' }}
                 </button>
+                <button class="text-sm px-4 py-2 rounded border hover:bg-gray-100" @click="showModal = false">
+                    Cancel·lar
+                </button>
+
             </div>
         </div>
     </div>
