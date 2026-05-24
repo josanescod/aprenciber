@@ -49,13 +49,17 @@ onMounted(async () => {
 <template>
   <AppLayout>
     <div>
-      <h1 class="text-2xl font-bold mb-6">Escenaris</h1>
+      <h1 class="text-2xl font-semibold text-gray-900 mb-6">Escenaris</h1>
 
-      <div v-if="loading" class="text-gray-500">Carregant...</div>
+      <div v-if="loading" class="text-gray-500 text-sm">
+        Carregant...
+      </div>
 
-      <div v-else-if="error" class="text-red-500">{{ error }}</div>
+      <div v-else-if="error" class="text-red-600 text-sm">
+        {{ error }}
+      </div>
 
-      <div v-else-if="scenarios.length === 0" class="text-gray-500">
+      <div v-else-if="scenarios.length === 0" class="text-gray-500 text-sm">
         No hi ha escenaris disponibles.
       </div>
 
@@ -63,23 +67,25 @@ onMounted(async () => {
         <div
           v-for="scenario in scenarios"
           :key="scenario.id"
-          class="border rounded-lg p-4 cursor-pointer hover:shadow-md transition-shadow bg-white"
+          class="border border-gray-200 rounded-xl p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors duration-200"
           :class="{ 'bg-green-50': isCompleted(scenario.id) }"
           @click="router.push(`/scenarios/${scenario.id}`)"
         >
           <div class="flex items-start justify-between mb-2 gap-2">
-            <h2 class="font-semibold text-gray-900">{{ scenario.title }}</h2>
+            <h2 class="font-semibold text-gray-900">
+              {{ scenario.title }}
+            </h2>
 
             <div class="flex gap-2 shrink-0">
               <span
                 v-if="isCompleted(scenario.id)"
-                class="text-xs font-medium px-2 py-1 rounded bg-green-100 text-green-800"
+                class="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-800"
               >
                 Completat
               </span>
 
               <span
-                class="text-xs font-medium px-2 py-1 rounded"
+                class="text-xs font-medium px-2 py-1 rounded-full"
                 :class="difficultyColor(scenario.difficulty)"
               >
                 {{ scenario.difficulty }}
@@ -95,7 +101,7 @@ onMounted(async () => {
             <span
               v-for="tag in scenario.tags.split(',')"
               :key="tag"
-              class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded"
+              class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full"
             >
               {{ tag }}
             </span>

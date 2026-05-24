@@ -78,14 +78,19 @@ onMounted(fetchScenarios)
   <div>
     <p v-if="loading" class="text-gray-500 text-sm">Carregant...</p>
     <p v-else-if="error" class="text-red-600 text-sm">{{ error }}</p>
-    <div v-else class="overflow-x-auto rounded border border-black">
-      <div class="flex justify-end mb-4">
-        <button class="border rounded px-3 py-1 hover:bg-gray-100" @click="showUploadModal = true">
+
+    <div v-else class="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+      <div class="flex justify-end p-4">
+        <button
+          class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition"
+          @click="showUploadModal = true"
+        >
           Importar escenari
         </button>
       </div>
+
       <table class="w-full text-sm">
-        <thead class="bg-gray-50 border-b border-black text-gray-500 text-left">
+        <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 text-left">
           <tr>
             <th class="px-4 py-3 font-medium">Títol</th>
             <th class="px-4 py-3 font-medium">Dificultat</th>
@@ -93,23 +98,40 @@ onMounted(fetchScenarios)
             <th class="px-4 py-3 font-medium">Estat</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-black">
-          <tr v-for="scenario in scenarios" :key="scenario.id" class="hover:bg-gray-50">
-            <td class="px-4 py-3 font-medium">{{ scenario.title }}</td>
+
+        <tbody class="divide-y divide-gray-200">
+          <tr
+            v-for="scenario in scenarios"
+            :key="scenario.id"
+            class="hover:bg-gray-50 transition-colors duration-200"
+          >
+            <td class="px-4 py-3 font-medium text-gray-900">
+              {{ scenario.title }}
+            </td>
+
             <td class="px-4 py-3">
-              <span class="text-xs px-2 py-0.5 rounded font-medium" :class="{
-                'bg-green-100 text-green-700': scenario.difficulty === 'easy',
-                'bg-yellow-100 text-yellow-700': scenario.difficulty === 'medium',
-                'bg-red-100 text-red-700': scenario.difficulty === 'hard',
-              }">
+              <span
+                class="text-xs px-2 py-0.5 rounded-full font-medium"
+                :class="{
+                  'bg-green-100 text-green-700': scenario.difficulty === 'easy',
+                  'bg-yellow-100 text-yellow-700': scenario.difficulty === 'medium',
+                  'bg-red-100 text-red-700': scenario.difficulty === 'hard',
+                }"
+              >
                 {{ scenario.difficulty }}
               </span>
             </td>
-            <td class="px-4 py-3 text-gray-500">{{ scenario.tags }}</td>
+
+            <td class="px-4 py-3 text-gray-500">
+              {{ scenario.tags }}
+            </td>
+
             <td class="px-4 py-3">
-              <button class="text-xs px-2 py-1 rounded font-medium"
+              <button
+                class="text-xs px-3 py-1 rounded-full font-medium transition"
                 :class="scenario.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
-                @click="toggleActive(scenario)">
+                @click="toggleActive(scenario)"
+              >
                 {{ scenario.is_active ? 'Actiu' : 'Inactiu' }}
               </button>
             </td>
@@ -117,21 +139,46 @@ onMounted(fetchScenarios)
         </tbody>
       </table>
     </div>
+
     <!-- Modal upload -->
-    <div v-if="showUploadModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-        <h2 class="text-lg font-bold mb-4">Importar escenari</h2>
+    <div
+      v-if="showUploadModal"
+      class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4"
+    >
+      <div class="bg-white border border-gray-200 rounded-xl p-6 w-full max-w-md">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">
+          Importar escenari
+        </h2>
+
         <p class="text-sm text-gray-500 mb-4">
           Puja un fitxer .zip amb l'estructura:<br>
-          <code class="text-xs bg-gray-100 px-1">nom_escenari/scenario.yaml + attacker/ + target/</code>
+          <code class="text-xs bg-gray-100 text-gray-700 px-1 py-0.5 rounded">
+            nom_escenari/scenario.yaml + attacker/ + target/
+          </code>
         </p>
-        <input type="file" accept=".zip" class="text-sm w-full" @change="uploadScenario" />
-        <p v-if="uploadError" class="text-red-500 text-xs mt-2">{{ uploadError }}</p>
+
+        <input
+          type="file"
+          accept=".zip"
+          class="text-sm w-full text-gray-700"
+          @change="uploadScenario"
+        />
+
+        <p v-if="uploadError" class="text-red-600 text-xs mt-2">
+          {{ uploadError }}
+        </p>
+
         <div class="flex justify-end gap-2 mt-6">
-          <button class="text-sm px-4 py-2 rounded border hover:bg-gray-100" @click="showUploadModal = false">
+          <button
+            class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+            @click="showUploadModal = false"
+          >
             Cancel·lar
           </button>
-          <span v-if="uploading" class="text-sm text-gray-500 self-center">Pujant...</span>
+
+          <span v-if="uploading" class="text-sm text-gray-500 self-center">
+            Pujant...
+          </span>
         </div>
       </div>
     </div>

@@ -27,40 +27,85 @@ async function handleRegister() {
 
 
 <template>
-    <main class="max-w-md mx-auto p-6">
-        <h1 class="text-2xl font-bold mb-4">Crear compte</h1>
+    <main class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div class="w-full max-w-md border border-gray-200 rounded-xl bg-white p-8">
+            <h1 class="text-2xl font-semibold mb-6 text-center text-gray-900">
+                Crear compte
+            </h1>
 
-        <form class="space-y-4" @submit.prevent="handleRegister">
-            <div>
-                <label class="block mb-1">Nom</label>
-                <input v-model="fullName" type="text" class="w-full border rounded px-3 py-2" required />
-            </div>
-            <div>
-                <label class="block mb-1">Email</label>
-                <input v-model="email" type="email" class="w-full border rounded px-3 py-2" required />
-            </div>
-            <div>
-                <label class="block mb-1">Contrassenya</label>
-                <input v-model="password" type="password" class="w-full border rounded px-3 py-2" minlength="8"
-                    required />
+            <form class="space-y-4" @submit.prevent="handleRegister">
+                <div>
+                    <label class="block mb-1 text-sm font-medium text-gray-700">
+                        Nom
+                    </label>
+                    <input
+                        v-model="fullName"
+                        type="text"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-500"
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label class="block mb-1 text-sm font-medium text-gray-700">
+                        Email
+                    </label>
+                    <input
+                        v-model="email"
+                        type="email"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-500"
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label class="block mb-1 text-sm font-medium text-gray-700">
+                        Contrassenya
+                    </label>
+                    <input
+                        v-model="password"
+                        type="password"
+                        minlength="8"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-500"
+                        required
+                    />
+                </div>
+
+                <button
+                    type="submit"
+                    class="w-full bg-black text-white py-2.5 rounded-lg hover:bg-gray-800 transition"
+                    :disabled="loading"
+                >
+                    {{ loading ? 'Creant compte...' : 'Registrar-se' }}
+                </button>
+            </form>
+
+            <div
+                v-if="success"
+                class="mt-5 p-4 border border-green-200 rounded-lg bg-green-50"
+            >
+                <p class="text-green-800 font-medium text-sm">
+                    Important!
+                </p>
+                <p class="text-green-700 text-sm mt-1">
+                    Revisa el teu email <strong>{{ email }}</strong> i fes click a
+                    l'enllaç per confirmar el registre.
+                </p>
             </div>
 
-            <button type="submit" class="bg-black text-white px-4 py-2 rounded" :disabled="loading">
-                {{ loading ? 'Creant compte...' : 'Registrar-se' }}
-            </button>
-        </form>
+            <p v-if="error" class="text-red-600 mt-4 text-sm text-center">
+                {{ error }}
+            </p>
 
-        <div v-if="success" class="mt-4 p-4 bg-green-50 border border-green-200 rounded">
-            <p class="text-green-800 font-medium">Important!</p>
-            <p class="text-green-700 text-sm mt-1">
-                Revisa el teu email <strong>{{ email }}</strong> i fes click a l'enllaç per confirmar el registre.
+            <p class="mt-6 text-sm text-center text-gray-600">
+                Ja estàs registrat?
+                <RouterLink
+                    to="/login"
+                    class="text-gray-900 hover:underline"
+                >
+                    Inicia sessió
+                </RouterLink>
             </p>
         </div>
-
-        <p v-if="error" class="text-red-600 mt-4">{{ error }}</p>
-
-        <p class="mt-4 text-sm text-center">
-            Ja estàs registrat? <RouterLink to="/login" class="text-blue-600 hover:underline">Inicia sessió</RouterLink>
-        </p>
     </main>
 </template>
