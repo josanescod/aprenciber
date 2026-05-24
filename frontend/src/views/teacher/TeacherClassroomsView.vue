@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { apiFetch } from '../../services/api'
 import { authStore } from '../../stores/auth'
+import ConfirmModal from '../../components/ConfirmModal.vue'
 
 const classrooms = ref([])
 const loading = ref(true)
@@ -11,6 +12,11 @@ const showEditModal = ref(false)
 const editingClassroom = ref(null)
 const newClassroom = ref({ name: '', description: '' })
 const saving = ref(false)
+
+const showConfirm = ref(false)
+const confirmMessage = ref('')
+const confirmAction = ref(null)
+
 
 async function fetchClassrooms() {
   try {
@@ -67,14 +73,18 @@ async function updateClassroom() {
 }
 
 async function deleteClassroom(classroom) {
-  if (!confirm(`Eliminar "${classroom.name}"?`)) return
-  try {
-    const token = authStore.session?.access_token
-    await apiFetch(`/api/classrooms/${classroom.id}`, token, { method: 'DELETE' })
-    classrooms.value = classrooms.value.filter(c => c.id !== classroom.id)
-  } catch (err) {
-    console.error('Error eliminant aula:', err)
-  }
+  openConfirm(
+    `Eliminar l'aula "${classroom.name}"?`,
+    async () => {
+      try {
+        const token = authStore.session?.access_token
+        await apiFetch(`/api/classrooms/${classroom.id}`, token, { method: 'DELETE' })
+        classrooms.value = classrooms.value.filter(c => c.id !== classroom.id)
+      } catch (err) {
+        console.error('Error eliminant aula:', err)
+      }
+    }
+  )
 }
 
 function openEditModal(classroom) {
@@ -82,6 +92,16 @@ function openEditModal(classroom) {
   showEditModal.value = true
 }
 
+function openConfirm(message, action) {
+  confirmMessage.value = message
+  confirmAction.value = action
+  showConfirm.value = true
+}
+
+function handleConfirm() {
+  confirmAction.value?.()
+  showConfirm.value = false
+}
 
 onMounted(fetchClassrooms)
 </script>
@@ -93,10 +113,8 @@ onMounted(fetchClassrooms)
 
     <div v-else>
       <div class="flex justify-end mb-4">
-        <button
-          class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition"
-          @click="showCreateModal = true"
-        >
+        <button class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition"
+          @click="showCreateModal = true">
           Nova aula
         </button>
       </div>
@@ -106,15 +124,9 @@ onMounted(fetchClassrooms)
       </p>
 
       <div v-else class="flex flex-col gap-3">
-        <div
-          v-for="classroom in classrooms"
-          :key="classroom.id"
-          class="border border-gray-200 rounded-xl bg-white p-4 flex items-center justify-between hover:bg-gray-50 transition"
-        >
-          <RouterLink
-            :to="{ name: 'teacher-classroom-detail', params: { id: classroom.id } }"
-            class="flex-1"
-          >
+        <div v-for="classroom in classrooms" :key="classroom.id"
+          class="border border-gray-200 rounded-xl bg-white p-4 flex items-center justify-between hover:bg-gray-50 transition">
+          <RouterLink :to="{ name: 'teacher-classroom-detail', params: { id: classroom.id } }" class="flex-1">
             <p class="font-medium text-gray-900">{{ classroom.name }}</p>
             <p class="text-sm text-gray-500 mt-1">{{ classroom.description ?? '—' }}</p>
             <p class="text-xs text-gray-400 mt-1">
@@ -125,15 +137,12 @@ onMounted(fetchClassrooms)
           <div class="flex gap-2 ml-4">
             <button
               class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition"
-              @click.prevent="openEditModal(classroom)"
-            >
+              @click.prevent="openEditModal(classroom)">
               Editar
             </button>
 
-            <button
-              class="border border-red-200 rounded-lg px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 transition"
-              @click.prevent="deleteClassroom(classroom)"
-            >
+            <button class="border border-red-200 rounded-lg px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 transition"
+              @click.prevent="deleteClassroom(classroom)">
               Eliminar
             </button>
           </div>
@@ -147,34 +156,22 @@ onMounted(fetchClassrooms)
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Nova aula</h2>
 
         <div class="flex flex-col gap-3">
-          <input
-            v-model="newClassroom.name"
-            type="text"
-            placeholder="Nom de l'aula"
-            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
-          />
+          <input v-model="newClassroom.name" type="text" placeholder="Nom de l'aula"
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500" />
 
-          <input
-            v-model="newClassroom.description"
-            type="text"
-            placeholder="Descripció (opcional)"
-            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
-          />
+          <input v-model="newClassroom.description" type="text" placeholder="Descripció (opcional)"
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500" />
         </div>
 
         <div class="flex justify-end gap-2 mt-6">
           <button
             class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition disabled:opacity-50"
-            :disabled="saving || !newClassroom.name"
-            @click="createClassroom"
-          >
+            :disabled="saving || !newClassroom.name" @click="createClassroom">
             {{ saving ? 'Creant...' : 'Crear' }}
           </button>
 
-          <button
-            class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
-            @click="showCreateModal = false"
-          >
+          <button class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+            @click="showCreateModal = false">
             Cancel·lar
           </button>
         </div>
@@ -187,38 +184,27 @@ onMounted(fetchClassrooms)
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Editar aula</h2>
 
         <div class="flex flex-col gap-3">
-          <input
-            v-model="editingClassroom.name"
-            type="text"
-            placeholder="Nom de l'aula"
-            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
-          />
+          <input v-model="editingClassroom.name" type="text" placeholder="Nom de l'aula"
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500" />
 
-          <input
-            v-model="editingClassroom.description"
-            type="text"
-            placeholder="Descripció (opcional)"
-            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
-          />
+          <input v-model="editingClassroom.description" type="text" placeholder="Descripció (opcional)"
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500" />
         </div>
 
         <div class="flex justify-end gap-2 mt-6">
           <button
             class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition disabled:opacity-50"
-            :disabled="saving || !editingClassroom.name"
-            @click="updateClassroom"
-          >
+            :disabled="saving || !editingClassroom.name" @click="updateClassroom">
             {{ saving ? 'Guardant...' : 'Guardar' }}
           </button>
 
-          <button
-            class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
-            @click="showEditModal = false"
-          >
+          <button class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+            @click="showEditModal = false">
             Cancel·lar
           </button>
         </div>
       </div>
     </div>
+    <ConfirmModal v-if="showConfirm" :message="confirmMessage" @confirm="handleConfirm" @cancel="showConfirm = false" />
   </div>
 </template>

@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiFetch } from '../../services/api'
 import { authStore } from '../../stores/auth'
+import ConfirmModal from '../../components/ConfirmModal.vue'
 
 const route = useRoute()
 const classroomId = route.params.id
@@ -17,13 +18,17 @@ const allStudents = ref([])
 const selectedStudentId = ref('')
 const adding = ref(false)
 
+const showConfirm = ref(false)
+const confirmMessage = ref('')
+const confirmAction = ref(null)
+
 async function fetchData() {
   try {
     const token = authStore.session?.access_token
-    ;[members.value, progress.value] = await Promise.all([
-      apiFetch(`/api/classrooms/${classroomId}/members`, token),
-      apiFetch(`/api/classrooms/${classroomId}/progress`, token),
-    ])
+      ;[members.value, progress.value] = await Promise.all([
+        apiFetch(`/api/classrooms/${classroomId}/members`, token),
+        apiFetch(`/api/classrooms/${classroomId}/progress`, token),
+      ])
   } catch (err) {
     error.value = 'Error carregant les dades'
     console.error(err)
@@ -66,16 +71,31 @@ async function openAddModal() {
 }
 
 async function removeMember(studentId) {
-  if (!confirm('Treure aquest alumne de l\'aula?')) return
-  try {
-    const token = authStore.session?.access_token
-    await apiFetch(`/api/classrooms/${classroomId}/members/${studentId}`, token, {
-      method: 'DELETE',
-    })
-    members.value = members.value.filter(m => m.id !== studentId)
-  } catch (err) {
-    console.error('Error traient alumne:', err)
-  }
+  openConfirm(
+    'Treure aquest alumne de l\'aula?',
+    async () => {
+      try {
+        const token = authStore.session?.access_token
+        await apiFetch(`/api/classrooms/${classroomId}/members/${studentId}`, token, {
+          method: 'DELETE',
+        })
+        members.value = members.value.filter(m => m.id !== studentId)
+      } catch (err) {
+        console.error('Error traient alumne:', err)
+      }
+    }
+  )
+}
+
+function openConfirm(message, action) {
+  confirmMessage.value = message
+  confirmAction.value = action
+  showConfirm.value = true
+}
+
+function handleConfirm() {
+  confirmAction.value?.()
+  showConfirm.value = false
 }
 
 onMounted(fetchData)
@@ -88,10 +108,8 @@ onMounted(fetchData)
 
     <div v-else>
       <div class="flex justify-end mb-4">
-        <button
-          class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition"
-          @click="openAddModal"
-        >
+        <button class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition"
+          @click="openAddModal">
           Afegir alumne
         </button>
       </div>
@@ -101,21 +119,15 @@ onMounted(fetchData)
       </p>
 
       <div v-else class="flex flex-col gap-4">
-        <div
-          v-for="member in members"
-          :key="member.id"
-          class="border border-gray-200 rounded-xl bg-white p-4"
-        >
+        <div v-for="member in members" :key="member.id" class="border border-gray-200 rounded-xl bg-white p-4">
           <div class="flex items-center justify-between mb-3">
             <div>
               <p class="font-medium text-gray-900">{{ member.full_name ?? '—' }}</p>
               <p class="text-sm text-gray-500">{{ member.email }}</p>
             </div>
 
-            <button
-              class="text-xs border border-red-200 rounded-lg px-2 py-1 text-red-600 hover:bg-red-50 transition"
-              @click="removeMember(member.id)"
-            >
+            <button class="text-xs border border-red-200 rounded-lg px-2 py-1 text-red-600 hover:bg-red-50 transition"
+              @click="removeMember(member.id)">
               Treure
             </button>
           </div>
@@ -125,16 +137,10 @@ onMounted(fetchData)
           </div>
 
           <div v-else class="flex flex-col gap-1">
-            <div
-              v-for="p in getProgress(member.id)"
-              :key="p.scenario_id"
-              class="flex items-center gap-2 text-xs"
-            >
+            <div v-for="p in getProgress(member.id)" :key="p.scenario_id" class="flex items-center gap-2 text-xs">
               <span class="text-gray-700">Escenari {{ p.scenario_id }}</span>
-              <span
-                class="px-2 py-0.5 rounded-full font-medium"
-                :class="p.success ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'"
-              >
+              <span class="px-2 py-0.5 rounded-full font-medium"
+                :class="p.success ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'">
                 {{ p.success ? 'Completat' : 'En progrés' }}
               </span>
               <span class="text-gray-400">
@@ -151,10 +157,8 @@ onMounted(fetchData)
       <div class="bg-white border border-gray-200 rounded-xl p-6 w-full max-w-md">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Afegir alumne</h2>
 
-        <select
-          v-model="selectedStudentId"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
-        >
+        <select v-model="selectedStudentId"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500">
           <option value="" disabled>Selecciona un alumne...</option>
           <option v-for="student in allStudents" :key="student.id" :value="student.id">
             {{ student.full_name ?? student.email }} — {{ student.email }}
@@ -164,20 +168,17 @@ onMounted(fetchData)
         <div class="flex justify-end gap-2 mt-6">
           <button
             class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition disabled:opacity-50"
-            :disabled="adding || !selectedStudentId"
-            @click="addMember"
-          >
+            :disabled="adding || !selectedStudentId" @click="addMember">
             {{ adding ? 'Afegint...' : 'Afegir' }}
           </button>
 
-          <button
-            class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
-            @click="showAddModal = false"
-          >
+          <button class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+            @click="showAddModal = false">
             Cancel·lar
           </button>
         </div>
       </div>
     </div>
+    <ConfirmModal v-if="showConfirm" :message="confirmMessage" @confirm="handleConfirm" @cancel="showConfirm = false" />
   </div>
 </template>
