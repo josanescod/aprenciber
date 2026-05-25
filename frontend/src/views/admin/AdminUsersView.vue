@@ -89,7 +89,7 @@ onMounted(fetchUsers)
     <!-- Modal -->
     <div
         v-if="showModal"
-        class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4"
+        class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4 font-sans"
     >
         <div class="bg-white border border-gray-200 rounded-xl p-6 w-full max-w-md">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">
@@ -108,7 +108,7 @@ onMounted(fetchUsers)
                     v-model="newUser.email"
                     type="email"
                     placeholder="Email"
-                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+                    class="font-mono border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
                 />
 
                 <input
@@ -154,12 +154,15 @@ onMounted(fetchUsers)
         </div>
     </div>
 
-    <div>
+    <div class="font-sans">
         <p v-if="loading" class="text-gray-500 text-sm">
             Carregant...
         </p>
 
-        <p v-else-if="error" class="text-red-600 text-sm">
+        <p
+            v-else-if="error"
+            class="font-mono text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded whitespace-pre-wrap"
+        >
             {{ error }}
         </p>
 
@@ -167,8 +170,8 @@ onMounted(fetchUsers)
             v-else
             class="overflow-x-auto rounded-xl border border-gray-200 bg-white"
         >
-            <div class="flex items-center justify-between p-4">
-                <div class="flex gap-2">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4">
+                <div class="flex flex-col sm:flex-row gap-2">
                     <select
                         v-model="filterRole"
                         class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-500"
@@ -190,7 +193,7 @@ onMounted(fetchUsers)
                 </div>
 
                 <button
-                    class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition"
+                    class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition w-full sm:w-auto"
                     @click="showModal = true"
                 >
                     Nou usuari
@@ -215,11 +218,11 @@ onMounted(fetchUsers)
                         :key="user.id"
                         class="hover:bg-gray-50 transition-colors duration-200"
                     >
-                        <td class="px-4 py-3 text-gray-900">
+                        <td class="px-4 py-3 text-gray-900 font-medium">
                             {{ user.full_name ?? '—' }}
                         </td>
 
-                        <td class="px-4 py-3 text-gray-600">
+                        <td class="px-4 py-3 font-mono text-xs text-gray-600">
                             {{ user.email }}
                         </td>
 
@@ -227,14 +230,17 @@ onMounted(fetchUsers)
                             <select
                                 v-if="user.role !== 'admin'"
                                 :value="user.role"
-                                class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-gray-500"
+                                class="font-mono text-xs border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-gray-500"
                                 @change="updateRole(user.id, $event.target.value)"
                             >
                                 <option value="student">Student</option>
                                 <option value="teacher">Teacher</option>
                             </select>
 
-                            <span v-else class="text-sm font-medium text-gray-900">
+                            <span
+                                v-else
+                                class="font-mono text-xs font-semibold uppercase tracking-wide text-gray-900"
+                            >
                                 Admin
                             </span>
                         </td>
@@ -249,7 +255,7 @@ onMounted(fetchUsers)
                                 {{ user.is_active ? 'Actiu' : 'Inactiu' }}
                             </button>
 
-                            <span v-else class="text-xs px-2 py-1 text-gray-400">
+                            <span v-else class="font-mono text-xs px-2 py-1 text-gray-400">
                                 —
                             </span>
                         </td>

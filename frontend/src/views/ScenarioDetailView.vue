@@ -95,10 +95,12 @@ async function startLab() {
 
 <template>
     <AppLayout>
-        <div>
+        <div class="font-sans">
 
-            <button class="text-sm text-gray-500 hover:text-gray-700 mb-6 flex items-center gap-1"
-                @click="router.push('/scenarios')">
+            <button
+                class="text-sm text-gray-500 hover:text-gray-700 mb-6 flex items-center gap-1"
+                @click="router.push('/scenarios')"
+            >
                 ← Tornar als escenaris
             </button>
 
@@ -107,41 +109,56 @@ async function startLab() {
             </div>
 
             <div v-else-if="scenario">
-                <div class="flex items-start justify-between mb-4">
-                    <h1 class="text-2xl font-bold text-gray-900">
-                        {{ scenario.title }}
-                    </h1>
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">
+                            {{ scenario.title }}
+                        </h1>
 
-                    <span class="text-sm font-medium px-3 py-1 rounded ml-4 shrink-0"
-                        :class="difficultyColor(scenario.difficulty)">
+                        <p class="mt-2 font-mono text-xs text-gray-400">
+                            {{ scenario.slug }}
+                        </p>
+                    </div>
+
+                    <span
+                        class="font-mono text-xs font-semibold uppercase tracking-wide px-3 py-1 rounded shrink-0 w-fit"
+                        :class="difficultyColor(scenario.difficulty)"
+                    >
                         {{ scenario.difficulty }}
                     </span>
                 </div>
 
-                <p class="text-gray-600 mb-6">
+                <p class="text-gray-600 mb-6 leading-relaxed">
                     {{ scenario.description }}
                 </p>
 
                 <div v-if="scenario.tags" class="flex flex-wrap gap-2 mb-8">
-                    <span v-for="tag in scenario.tags.split(',')" :key="tag"
-                        class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                        {{ tag }}
+                    <span
+                        v-for="tag in scenario.tags.split(',')"
+                        :key="tag"
+                        class="font-mono text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
+                    >
+                        {{ tag.trim() }}
                     </span>
                 </div>
 
                 <div class="flex flex-col gap-3">
 
-                    <div v-if="isCompleted"
-                        class="text-sm text-green-700 bg-green-50 border border-green-200 px-4 py-3 rounded">
-                        Ja has completat aquest escenari. Pots repetir el laboratori per practicar, però no generarà
-                        nova puntuació.
+                    <div
+                        v-if="isCompleted"
+                        class="text-sm text-green-700 bg-green-50 border border-green-200 px-4 py-3 rounded leading-relaxed"
+                    >
+                        Ja has completat aquest escenari. Pots repetir el laboratori per practicar,
+                        però no generarà nova puntuació.
                     </div>
 
-                    <div class="flex items-center gap-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
 
                         <button
-                            class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium px-6 py-3 rounded-lg transition-colors"
-                            :disabled="startingLab || !!activeLab" @click="startLab">
+                            class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium px-6 py-3 rounded-lg transition-colors w-full sm:w-auto"
+                            :disabled="startingLab || !!activeLab"
+                            @click="startLab"
+                        >
                             {{
                                 startingLab
                                     ? 'Creant laboratori...'
@@ -151,9 +168,11 @@ async function startLab() {
                             }}
                         </button>
 
-                        <button v-if="activeLab"
-                            class="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-lg"
-                            @click="router.push(`/labs/${activeLab.id}`)">
+                        <button
+                            v-if="activeLab"
+                            class="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-lg w-full sm:w-auto"
+                            @click="router.push(`/labs/${activeLab.id}`)"
+                        >
                             Continuar laboratori
                         </button>
 
@@ -163,7 +182,10 @@ async function startLab() {
                         Ja tens un laboratori actiu.
                     </p>
 
-                    <p v-if="startLabError" class="text-red-500 text-sm">
+                    <p
+                        v-if="startLabError"
+                        class="font-mono text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded whitespace-pre-wrap"
+                    >
                         {{ startLabError }}
                     </p>
 

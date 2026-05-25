@@ -1,9 +1,13 @@
 <template>
-  <main class="min-h-screen bg-white flex items-center justify-center px-6">
+  <main class="min-h-screen bg-white flex items-center justify-center px-4 py-8 font-sans">
     <section class="w-full max-w-3xl text-center space-y-6">
 
-      <div class="bg-black text-white text-left p-6 rounded font-mono text-sm overflow-x-auto">
-        <pre><code>Benvinguts a
+      <div class="bg-black text-white text-left p-4 sm:p-6 rounded font-mono max-w-full overflow-x-auto font-mono">
+        <pre class="block sm:hidden text-xs leading-tight whitespace-pre"><code>Benvinguts a AprenCiber
+
+user@aprenciber:~$</code></pre>
+
+        <pre class="hidden sm:block text-sm leading-tight whitespace-pre"><code>Benvinguts a
 
   ___                       _____ _ _
  / _ \                     /  __ (_) |
@@ -17,7 +21,7 @@
 user@aprenciber:~$</code></pre>
       </div>
 
-      <nav class="text-sm">
+      <nav class="text-sm flex items-center justify-center gap-3 flex-wrap">
         <RouterLink
           to="/login"
           class="text-gray-700 hover:text-black hover:underline"
@@ -25,7 +29,7 @@ user@aprenciber:~$</code></pre>
           Iniciar sessió
         </RouterLink>
 
-        <span class="mx-3 text-gray-400">|</span>
+        <span class="text-gray-400">|</span>
 
         <RouterLink
           to="/register"

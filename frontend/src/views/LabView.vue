@@ -149,47 +149,71 @@ async function restartLab() {
 
 <template>
   <AppLayout>
-    <div>
+    <div class="font-sans">
       <h1 class="text-2xl font-bold mb-6">Laboratori</h1>
 
       <div v-if="loading" class="text-gray-500">
         Carregant laboratori...
       </div>
 
-      <div v-else-if="error" class="text-red-500">
+      <div
+        v-else-if="error"
+        class="font-mono text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded whitespace-pre-wrap"
+      >
         {{ error }}
       </div>
 
       <div v-else-if="lab">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <div>
-            <p class="mb-1 text-sm text-gray-500">Lab #{{ lab.id }}</p>
-            <p class="mb-1">
-              <strong>Estat:</strong>
-              <span :class="statusColor(lab.status)" class="ml-1 font-medium">
+            <p class="mb-1 font-mono text-xs text-gray-500">
+              Lab #{{ lab.id }}
+            </p>
+
+            <p class="mb-1 text-sm">
+              <strong class="font-semibold">Estat:</strong>
+              <span
+                :class="statusColor(lab.status)"
+                class="ml-1 font-mono text-xs font-semibold uppercase tracking-wide"
+              >
                 {{ statusLabel(lab.status) }}
               </span>
             </p>
           </div>
-          <div class="flex gap-2">
+
+          <div class="flex flex-col sm:flex-row gap-2">
             <button
-              class="border rounded px-4 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              :disabled="lab.status !== 'running' || restarting" @click="restartLab">
+              class="border rounded px-4 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              :disabled="lab.status !== 'running' || restarting"
+              @click="restartLab"
+            >
               {{ restarting ? 'Reiniciant...' : 'Reiniciar laboratori' }}
             </button>
+
             <button
-              class="bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded transition-colors"
-              :disabled="lab.status !== 'running'" @click="removeLab">
+              class="bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded text-sm transition-colors w-full sm:w-auto"
+              :disabled="lab.status !== 'running'"
+              @click="removeLab"
+            >
               Eliminar laboratori
             </button>
           </div>
         </div>
-        <p v-if="lab.status === 'expired'" class="text-orange-500 mb-4">
+
+        <p
+          v-if="lab.status === 'expired'"
+          class="text-orange-600 bg-orange-50 border border-orange-100 px-4 py-3 rounded text-sm mb-4"
+        >
           Aquest laboratori ha expirat.
         </p>
-        <p v-if="lab.status === 'removed'" class="text-gray-500 mb-4">
+
+        <p
+          v-if="lab.status === 'removed'"
+          class="text-gray-600 bg-gray-50 border border-gray-100 px-4 py-3 rounded text-sm mb-4"
+        >
           Aquest laboratori ha estat eliminat.
         </p>
+
         <!-- Pistes -->
         <div v-if="scenario?.hints?.length && lab.status === 'running'" class="mb-6">
           <h2 class="font-semibold mb-2">Pistes</h2>
@@ -206,43 +230,79 @@ async function restartLab() {
             </ul>
           </details>
         </div>
+
         <!-- Terminal -->
         <div v-if="lab.status === 'running'" class="mb-6">
-          <h2 class="font-semibold mb-2">Terminal</h2>
-          <div v-if="terminalReady" class="rounded overflow-hidden border border-gray-300" style="height: 500px;">
-            <iframe :src="terminalUrl" class="w-full h-full" frameborder="0" allow="clipboard-read; clipboard-write" />
+          <div class="flex items-center justify-between gap-3 mb-2">
+            <h2 class="font-semibold">Terminal</h2>
+
+            <span
+              v-if="terminalReady"
+              class="font-mono text-xs text-gray-500"
+            >
+              {{ terminalUrl }}
+            </span>
           </div>
-          <div v-else class="text-sm text-gray-500">
+
+          <div
+            v-if="terminalReady"
+            class="rounded overflow-hidden border border-gray-300"
+            style="height: 500px;"
+          >
+            <iframe
+              :src="terminalUrl"
+              class="w-full h-full"
+              frameborder="0"
+              allow="clipboard-read; clipboard-write"
+            />
+          </div>
+
+          <div
+            v-else
+            class="font-mono text-sm text-gray-500 bg-gray-50 border border-gray-100 px-4 py-3 rounded"
+          >
             Preparant terminal...
           </div>
         </div>
+
         <!-- Enviar flag -->
         <div v-if="lab.status === 'running'" class="mb-6">
           <h2 class="font-semibold mb-2">Enviar flag</h2>
 
-          <div v-if="flagResult?.correct"
-            class="mb-3 p-3 bg-green-50 border border-green-200 rounded text-green-800 text-sm">
+          <div
+            v-if="flagResult?.correct"
+            class="mb-3 p-3 bg-green-50 border border-green-200 rounded text-green-800 text-sm"
+          >
             {{ flagResult.message }}
           </div>
 
-          <div v-if="flagResult && !flagResult.correct"
-            class="mb-3 p-3 bg-red-50 border border-red-200 rounded text-red-800 text-sm">
+          <div
+            v-if="flagResult && !flagResult.correct"
+            class="mb-3 p-3 bg-red-50 border border-red-200 rounded text-red-800 text-sm"
+          >
             {{ flagResult.message }}
           </div>
 
-          <div v-if="!flagResult?.correct" class="flex gap-2">
-            <input v-model="flagInput" type="text" placeholder="FLAG{...}"
+          <div v-if="!flagResult?.correct" class="flex flex-col sm:flex-row gap-2">
+            <input
+              v-model="flagInput"
+              type="text"
+              placeholder="FLAG{...}"
               class="flex-1 border rounded px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-              :disabled="flagSubmitting" @keyup.enter="sendFlag" />
+              :disabled="flagSubmitting"
+              @keyup.enter="sendFlag"
+            />
+
             <button
-              class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded text-sm transition-colors"
-              :disabled="flagSubmitting || !flagInput.trim()" @click="sendFlag">
+              class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded text-sm transition-colors w-full sm:w-auto"
+              :disabled="flagSubmitting || !flagInput.trim()"
+              @click="sendFlag"
+            >
               {{ flagSubmitting ? 'Enviant...' : 'Enviar' }}
             </button>
           </div>
         </div>
       </div>
-
     </div>
   </AppLayout>
 </template>

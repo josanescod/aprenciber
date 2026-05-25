@@ -107,14 +107,22 @@ onMounted(fetchClassrooms)
 </script>
 
 <template>
-  <div>
+  <div class="font-sans">
     <p v-if="loading" class="text-gray-500 text-sm">Carregant...</p>
-    <p v-else-if="error" class="text-red-600 text-sm">{{ error }}</p>
+
+    <p
+      v-else-if="error"
+      class="font-mono text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded whitespace-pre-wrap"
+    >
+      {{ error }}
+    </p>
 
     <div v-else>
       <div class="flex justify-end mb-4">
-        <button class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition"
-          @click="showCreateModal = true">
+        <button
+          class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition"
+          @click="showCreateModal = true"
+        >
           Nova aula
         </button>
       </div>
@@ -124,25 +132,40 @@ onMounted(fetchClassrooms)
       </p>
 
       <div v-else class="flex flex-col gap-3">
-        <div v-for="classroom in classrooms" :key="classroom.id"
-          class="border border-gray-200 rounded-xl bg-white p-4 flex items-center justify-between hover:bg-gray-50 transition">
-          <RouterLink :to="{ name: 'teacher-classroom-detail', params: { id: classroom.id } }" class="flex-1">
-            <p class="font-medium text-gray-900">{{ classroom.name }}</p>
-            <p class="text-sm text-gray-500 mt-1">{{ classroom.description ?? '—' }}</p>
-            <p class="text-xs text-gray-400 mt-1">
+        <div
+          v-for="classroom in classrooms"
+          :key="classroom.id"
+          class="border border-gray-200 rounded-xl bg-white p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:bg-gray-50 transition"
+        >
+          <RouterLink
+            :to="{ name: 'teacher-classroom-detail', params: { id: classroom.id } }"
+            class="flex-1 min-w-0"
+          >
+            <p class="font-medium text-gray-900">
+              {{ classroom.name }}
+            </p>
+
+            <p class="text-sm text-gray-500 mt-1">
+              {{ classroom.description ?? '—' }}
+            </p>
+
+            <p class="font-mono text-xs text-gray-400 mt-1">
               {{ classroom.member_count }} alumne{{ classroom.member_count !== 1 ? 's' : '' }}
             </p>
           </RouterLink>
 
-          <div class="flex gap-2 ml-4">
+          <div class="flex flex-col sm:flex-row gap-2 sm:ml-4">
             <button
-              class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition"
-              @click.prevent="openEditModal(classroom)">
+              class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition w-full sm:w-auto"
+              @click.prevent="openEditModal(classroom)"
+            >
               Editar
             </button>
 
-            <button class="border border-red-200 rounded-lg px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 transition"
-              @click.prevent="deleteClassroom(classroom)">
+            <button
+              class="border border-red-200 rounded-lg px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 transition w-full sm:w-auto"
+              @click.prevent="deleteClassroom(classroom)"
+            >
               Eliminar
             </button>
           </div>
@@ -151,27 +174,42 @@ onMounted(fetchClassrooms)
     </div>
 
     <!-- Modal crear -->
-    <div v-if="showCreateModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+    <div
+      v-if="showCreateModal"
+      class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4 font-sans"
+    >
       <div class="bg-white border border-gray-200 rounded-xl p-6 w-full max-w-md">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Nova aula</h2>
 
         <div class="flex flex-col gap-3">
-          <input v-model="newClassroom.name" type="text" placeholder="Nom de l'aula"
-            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500" />
+          <input
+            v-model="newClassroom.name"
+            type="text"
+            placeholder="Nom de l'aula"
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          />
 
-          <input v-model="newClassroom.description" type="text" placeholder="Descripció (opcional)"
-            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500" />
+          <input
+            v-model="newClassroom.description"
+            type="text"
+            placeholder="Descripció (opcional)"
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          />
         </div>
 
         <div class="flex justify-end gap-2 mt-6">
           <button
             class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition disabled:opacity-50"
-            :disabled="saving || !newClassroom.name" @click="createClassroom">
+            :disabled="saving || !newClassroom.name"
+            @click="createClassroom"
+          >
             {{ saving ? 'Creant...' : 'Crear' }}
           </button>
 
-          <button class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
-            @click="showCreateModal = false">
+          <button
+            class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+            @click="showCreateModal = false"
+          >
             Cancel·lar
           </button>
         </div>
@@ -179,32 +217,53 @@ onMounted(fetchClassrooms)
     </div>
 
     <!-- Modal editar -->
-    <div v-if="showEditModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+    <div
+      v-if="showEditModal"
+      class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4 font-sans"
+    >
       <div class="bg-white border border-gray-200 rounded-xl p-6 w-full max-w-md">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Editar aula</h2>
 
         <div class="flex flex-col gap-3">
-          <input v-model="editingClassroom.name" type="text" placeholder="Nom de l'aula"
-            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500" />
+          <input
+            v-model="editingClassroom.name"
+            type="text"
+            placeholder="Nom de l'aula"
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          />
 
-          <input v-model="editingClassroom.description" type="text" placeholder="Descripció (opcional)"
-            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500" />
+          <input
+            v-model="editingClassroom.description"
+            type="text"
+            placeholder="Descripció (opcional)"
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          />
         </div>
 
         <div class="flex justify-end gap-2 mt-6">
           <button
             class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition disabled:opacity-50"
-            :disabled="saving || !editingClassroom.name" @click="updateClassroom">
+            :disabled="saving || !editingClassroom.name"
+            @click="updateClassroom"
+          >
             {{ saving ? 'Guardant...' : 'Guardar' }}
           </button>
 
-          <button class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
-            @click="showEditModal = false">
+          <button
+            class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+            @click="showEditModal = false"
+          >
             Cancel·lar
           </button>
         </div>
       </div>
     </div>
-    <ConfirmModal v-if="showConfirm" :message="confirmMessage" @confirm="handleConfirm" @cancel="showConfirm = false" />
+
+    <ConfirmModal
+      v-if="showConfirm"
+      :message="confirmMessage"
+      @confirm="handleConfirm"
+      @cancel="showConfirm = false"
+    />
   </div>
 </template>

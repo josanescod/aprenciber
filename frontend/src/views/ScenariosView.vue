@@ -48,14 +48,17 @@ onMounted(async () => {
 
 <template>
   <AppLayout>
-    <div>
+    <div class="font-sans">
       <h1 class="text-2xl font-semibold text-gray-900 mb-6">Escenaris</h1>
 
       <div v-if="loading" class="text-gray-500 text-sm">
         Carregant...
       </div>
 
-      <div v-else-if="error" class="text-red-600 text-sm">
+      <div
+        v-else-if="error"
+        class="font-mono text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded whitespace-pre-wrap"
+      >
         {{ error }}
       </div>
 
@@ -72,20 +75,29 @@ onMounted(async () => {
           @click="router.push(`/scenarios/${scenario.id}`)"
         >
           <div class="flex items-start justify-between mb-2 gap-2">
-            <h2 class="font-semibold text-gray-900">
-              {{ scenario.title }}
-            </h2>
+            <div class="min-w-0">
+              <h2 class="font-semibold text-gray-900">
+                {{ scenario.title }}
+              </h2>
 
-            <div class="flex gap-2 shrink-0">
+              <p
+                v-if="scenario.slug"
+                class="font-mono text-xs text-gray-400 mt-1 truncate"
+              >
+                {{ scenario.slug }}
+              </p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-2 shrink-0">
               <span
                 v-if="isCompleted(scenario.id)"
-                class="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-800"
+                class="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-800 whitespace-nowrap"
               >
                 Completat
               </span>
 
               <span
-                class="text-xs font-medium px-2 py-1 rounded-full"
+                class="font-mono text-xs font-semibold uppercase tracking-wide px-2 py-1 rounded-full whitespace-nowrap"
                 :class="difficultyColor(scenario.difficulty)"
               >
                 {{ scenario.difficulty }}
@@ -93,7 +105,7 @@ onMounted(async () => {
             </div>
           </div>
 
-          <p class="text-sm text-gray-600 line-clamp-3">
+          <p class="text-sm text-gray-600 line-clamp-3 leading-relaxed">
             {{ scenario.description }}
           </p>
 
@@ -101,9 +113,9 @@ onMounted(async () => {
             <span
               v-for="tag in scenario.tags.split(',')"
               :key="tag"
-              class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full"
+              class="font-mono text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full"
             >
-              {{ tag }}
+              {{ tag.trim() }}
             </span>
           </div>
         </div>

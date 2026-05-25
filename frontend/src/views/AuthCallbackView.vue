@@ -18,7 +18,11 @@ onMounted(async () => {
 </script>
 
 <template>
-    <main class="max-w-md mx-auto p-6 text-center">
-        <p class="text-gray-500">Verificant sessió...</p>
+    <main class="min-h-screen flex items-center justify-center px-4 font-sans">
+        <div class="max-w-md text-center">
+            <p class="font-mono text-sm text-gray-500">
+                Verificant sessió...
+            </p>
+        </div>
     </main>
 </template>

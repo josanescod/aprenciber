@@ -44,14 +44,17 @@ onMounted(async () => {
 
 <template>
   <AppLayout>
-    <div>
+    <div class="font-sans">
       <h1 class="text-2xl font-bold mb-6">El meu progrés</h1>
 
       <div v-if="loading" class="text-gray-500">
         Carregant progrés...
       </div>
 
-      <div v-else-if="error" class="text-red-500">
+      <div
+        v-else-if="error"
+        class="font-mono text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded whitespace-pre-wrap"
+      >
         {{ error }}
       </div>
 
@@ -63,40 +66,56 @@ onMounted(async () => {
         <table class="min-w-full text-sm">
           <thead class="bg-gray-50 text-gray-600">
             <tr>
-              <th class="text-left px-4 py-3">Escenari</th>
-              <th class="text-left px-4 py-3">Dificultat</th>
-              <th class="text-left px-4 py-3">Estat</th>
-              <th class="text-left px-4 py-3">Temps</th>
-              <th class="text-left px-4 py-3">Intents</th>
+              <th class="text-left px-4 py-3 font-semibold">Escenari</th>
+              <th class="text-left px-4 py-3 font-semibold">Dificultat</th>
+              <th class="text-left px-4 py-3 font-semibold">Estat</th>
+              <th class="text-left px-4 py-3 font-semibold">Temps</th>
+              <th class="text-left px-4 py-3 font-semibold">Intents</th>
             </tr>
           </thead>
 
           <tbody>
-            <tr v-for="item in progress" :key="item.scenario_id" class="border-t">
+            <tr
+              v-for="item in progress"
+              :key="item.scenario_id"
+              class="border-t"
+            >
               <td class="px-4 py-3 font-medium text-gray-900">
                 {{ item.scenario_title }}
               </td>
 
               <td class="px-4 py-3">
-                <span class="text-xs font-medium px-2 py-1 rounded" :class="difficultyColor(item.difficulty)">
+                <span
+                  class="font-mono text-xs font-semibold uppercase tracking-wide px-2 py-1 rounded"
+                  :class="difficultyColor(item.difficulty)"
+                >
                   {{ item.difficulty }}
                 </span>
               </td>
 
               <td class="px-4 py-3">
-                <span v-if="item.success" class="text-green-700 bg-green-100 px-2 py-1 rounded text-xs font-medium">
+                <span
+                  v-if="item.success"
+                  class="text-green-700 bg-green-100 px-2 py-1 rounded text-xs font-medium"
+                >
                   Completat
                 </span>
-                <span v-else class="text-gray-700 bg-gray-100 px-2 py-1 rounded text-xs font-medium">
+
+                <span
+                  v-else
+                  class="text-gray-700 bg-gray-100 px-2 py-1 rounded text-xs font-medium"
+                >
                   Pendent
                 </span>
               </td>
 
-              <td class="px-4 py-3">
+              <td class="px-4 py-3 font-mono text-xs text-gray-700">
                 {{ item.success ? formatTime(item.best_time_seconds) : '-' }}
               </td>
 
-              <td class="px-4 py-3 text-gray-600">{{ item.attempts }}</td>
+              <td class="px-4 py-3 font-mono text-xs text-gray-600">
+                {{ item.attempts }}
+              </td>
             </tr>
           </tbody>
         </table>

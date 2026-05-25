@@ -17,7 +17,7 @@ async function handleLogin() {
 
 
 <template>
-  <main class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+  <main class="min-h-screen flex items-center justify-center bg-gray-50 px-4 font-sans">
     <div class="w-full max-w-md border border-gray-200 rounded-xl bg-white p-8">
       <h1 class="text-2xl font-semibold mb-6 text-center text-gray-900">Login</h1>
 
