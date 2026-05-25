@@ -238,9 +238,9 @@ async function restartLab() {
 
             <span
               v-if="terminalReady"
-              class="font-mono text-xs text-gray-500"
+              class="font-mono text-xs text-green-700 bg-green-50 border border-green-100 px-2 py-0.5 rounded"
             >
-              {{ terminalUrl }}
+              connectat
             </span>
           </div>
 
