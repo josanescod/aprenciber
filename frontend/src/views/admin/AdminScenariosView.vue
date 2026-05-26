@@ -78,24 +78,24 @@ onMounted(fetchScenarios)
   <div class="font-sans">
     <p v-if="loading" class="text-gray-500 text-sm">Carregant...</p>
 
-    <p
-      v-else-if="error"
-      class="font-mono text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded whitespace-pre-wrap"
-    >
+    <p v-else-if="error"
+      class="font-mono text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded whitespace-pre-wrap">
       {{ error }}
     </p>
 
-    <div v-else class="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+    <div v-else class="rounded-xl border border-gray-200 bg-white overflow-hidden">
+
+      <!-- Botó importar -->
       <div class="flex justify-end p-4">
         <button
           class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition"
-          @click="showUploadModal = true"
-        >
+          @click="showUploadModal = true">
           Importar escenari
         </button>
       </div>
 
-      <table class="w-full min-w-max text-sm">
+      <!-- Taula — desktop -->
+      <table class="hidden sm:table w-full text-sm">
         <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 text-left">
           <tr>
             <th class="px-4 py-3 font-medium">Títol</th>
@@ -104,117 +104,109 @@ onMounted(fetchScenarios)
             <th class="px-4 py-3 font-medium">Estat</th>
           </tr>
         </thead>
-
         <tbody class="divide-y divide-gray-200">
-          <tr
-            v-for="scenario in scenarios"
-            :key="scenario.id"
-            class="hover:bg-gray-50 transition-colors duration-200"
-          >
+          <tr v-for="scenario in scenarios" :key="scenario.id"
+            class="hover:bg-gray-50 transition-colors duration-200">
             <td class="px-4 py-3">
-              <div class="font-medium text-gray-900">
-                {{ scenario.title }}
-              </div>
-
-              <div
-                v-if="scenario.slug"
-                class="font-mono text-xs text-gray-400 mt-1 break-all"
-              >
-                {{ scenario.slug }}
-              </div>
+              <div class="font-medium text-gray-900">{{ scenario.title }}</div>
+              <div v-if="scenario.slug" class="font-mono text-xs text-gray-400 mt-1">{{ scenario.slug }}</div>
             </td>
-
             <td class="px-4 py-3">
-              <span
-                class="font-mono text-xs px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide"
+              <span class="font-mono text-xs px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide"
                 :class="{
                   'bg-green-100 text-green-700': scenario.difficulty === 'easy',
                   'bg-yellow-100 text-yellow-700': scenario.difficulty === 'medium',
                   'bg-red-100 text-red-700': scenario.difficulty === 'hard',
-                }"
-              >
+                }">
                 {{ scenario.difficulty }}
               </span>
             </td>
-
             <td class="px-4 py-3">
-              <div
-                v-if="scenario.tags"
-                class="flex flex-wrap gap-1.5"
-              >
-                <span
-                  v-for="tag in scenario.tags.split(',')"
-                  :key="tag"
-                  class="font-mono text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded"
-                >
+              <div v-if="scenario.tags" class="flex flex-wrap gap-1.5">
+                <span v-for="tag in scenario.tags.split(',')" :key="tag"
+                  class="font-mono text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
                   {{ tag.trim() }}
                 </span>
               </div>
-
               <span v-else class="text-gray-400">—</span>
             </td>
-
             <td class="px-4 py-3">
-              <button
-                class="text-xs px-3 py-1 rounded-full font-medium transition"
+              <button class="text-xs px-3 py-1 rounded-full font-medium transition"
                 :class="scenario.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
-                @click="toggleActive(scenario)"
-              >
+                @click="toggleActive(scenario)">
                 {{ scenario.is_active ? 'Actiu' : 'Inactiu' }}
               </button>
             </td>
           </tr>
         </tbody>
       </table>
+
+      <!-- Targetes — mòbil -->
+      <div class="sm:hidden divide-y divide-gray-200">
+        <div v-for="scenario in scenarios" :key="scenario.id" class="p-4 flex flex-col gap-2">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <p class="font-medium text-gray-900">{{ scenario.title }}</p>
+              <p v-if="scenario.slug" class="font-mono text-xs text-gray-400 mt-0.5">{{ scenario.slug }}</p>
+            </div>
+            <button class="text-xs px-3 py-1 rounded-full font-medium shrink-0"
+              :class="scenario.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+              @click="toggleActive(scenario)">
+              {{ scenario.is_active ? 'Actiu' : 'Inactiu' }}
+            </button>
+          </div>
+          <div class="flex flex-wrap gap-1.5 items-center">
+            <span class="font-mono text-xs px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide"
+              :class="{
+                'bg-green-100 text-green-700': scenario.difficulty === 'easy',
+                'bg-yellow-100 text-yellow-700': scenario.difficulty === 'medium',
+                'bg-red-100 text-red-700': scenario.difficulty === 'hard',
+              }">
+              {{ scenario.difficulty }}
+            </span>
+            <span v-if="scenario.tags">
+              <span v-for="tag in scenario.tags.split(',')" :key="tag"
+                class="font-mono text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded mr-1">
+                {{ tag.trim() }}
+              </span>
+            </span>
+          </div>
+        </div>
+        <div v-if="scenarios.length === 0" class="px-4 py-6 text-center text-gray-400 text-sm">
+          No hi ha escenaris
+        </div>
+      </div>
+
     </div>
 
     <!-- Modal upload -->
-    <div
-      v-if="showUploadModal"
-      class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4 font-sans"
-    >
+    <div v-if="showUploadModal"
+      class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4 font-sans">
       <div class="bg-white border border-gray-200 rounded-xl p-6 w-full max-w-md">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">
-          Importar escenari
-        </h2>
-
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Importar escenari</h2>
         <p class="text-sm text-gray-500 mb-4 leading-relaxed">
           Puja un fitxer .zip amb l'estructura:<br>
           <code class="font-mono text-xs bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded break-all">
             nom_escenari/scenario.yaml + attacker/ + target/
           </code>
         </p>
-
-        <input
-          type="file"
-          accept=".zip"
+        <input type="file" accept=".zip"
           class="text-sm w-full text-gray-700 file:mr-3 file:border file:border-gray-300 file:rounded-lg file:bg-white file:px-3 file:py-1.5 file:text-sm file:text-gray-700 hover:file:bg-gray-100"
-          @change="uploadScenario"
-        />
-
-        <p
-          v-if="uploadError"
-          class="font-mono text-xs text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded mt-3 whitespace-pre-wrap"
-        >
+          @change="uploadScenario" />
+        <p v-if="uploadError"
+          class="font-mono text-xs text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded mt-3">
           {{ uploadError }}
         </p>
-
         <div class="flex justify-end gap-2 mt-6">
           <button
             class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
-            @click="showUploadModal = false"
-          >
+            @click="showUploadModal = false">
             Cancel·lar
           </button>
-
-          <span
-            v-if="uploading"
-            class="font-mono text-xs text-gray-500 self-center"
-          >
-            Pujant...
-          </span>
+          <span v-if="uploading" class="font-mono text-xs text-gray-500 self-center">Pujant...</span>
         </div>
       </div>
     </div>
+
   </div>
 </template>

@@ -103,28 +103,21 @@ onMounted(fetchUsers)
                     placeholder="Nom complet"
                     class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
                 />
-
                 <input
                     v-model="newUser.email"
                     type="email"
                     placeholder="Email"
                     class="font-mono border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
                 />
-
                 <input
                     v-model="newUser.password"
                     type="password"
                     placeholder="Contrasenya"
                     class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
                 />
-
-                <p
-                    v-if="newUser.password && newUser.password.length < 8"
-                    class="text-red-600 text-xs -mt-2"
-                >
+                <p v-if="newUser.password && newUser.password.length < 8" class="text-red-600 text-xs -mt-2">
                     Mínim 8 caràcters
                 </p>
-
                 <select
                     v-model="newUser.role"
                     class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
@@ -143,7 +136,6 @@ onMounted(fetchUsers)
                 >
                     {{ creating ? 'Creant...' : 'Crear' }}
                 </button>
-
                 <button
                     class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
                     @click="showModal = false"
@@ -155,55 +147,42 @@ onMounted(fetchUsers)
     </div>
 
     <div class="font-sans">
-        <p v-if="loading" class="text-gray-500 text-sm">
-            Carregant...
-        </p>
+        <p v-if="loading" class="text-gray-500 text-sm">Carregant...</p>
 
-        <p
-            v-else-if="error"
-            class="font-mono text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded whitespace-pre-wrap"
-        >
+        <p v-else-if="error"
+            class="font-mono text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded whitespace-pre-wrap">
             {{ error }}
         </p>
 
-        <div
-            v-else
-            class="overflow-x-auto rounded-xl border border-gray-200 bg-white"
-        >
+        <div v-else class="rounded-xl border border-gray-200 bg-white overflow-hidden">
+
+            <!-- Filtres i botó -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4">
                 <div class="flex flex-col sm:flex-row gap-2">
-                    <select
-                        v-model="filterRole"
-                        class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-500"
-                    >
+                    <select v-model="filterRole"
+                        class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-500">
                         <option value="">Tots els rols</option>
                         <option value="student">Student</option>
                         <option value="teacher">Teacher</option>
                         <option value="admin">Admin</option>
                     </select>
-
-                    <select
-                        v-model="filterActive"
-                        class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-500"
-                    >
+                    <select v-model="filterActive"
+                        class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-500">
                         <option value="">Tots els estats</option>
                         <option value="active">Actiu</option>
                         <option value="inactive">Inactiu</option>
                     </select>
                 </div>
-
                 <button
                     class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition w-full sm:w-auto"
-                    @click="showModal = true"
-                >
+                    @click="showModal = true">
                     Nou usuari
                 </button>
             </div>
 
-            <table class="w-full text-sm">
-                <thead
-                    class="bg-gray-50 border-b border-gray-200 text-gray-500 text-left"
-                >
+            <!-- Taula — desktop -->
+            <table class="hidden sm:table w-full text-sm">
+                <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 text-left">
                     <tr>
                         <th class="px-4 py-3 font-medium">Nom</th>
                         <th class="px-4 py-3 font-medium">Email</th>
@@ -211,56 +190,31 @@ onMounted(fetchUsers)
                         <th class="px-4 py-3 font-medium">Estat</th>
                     </tr>
                 </thead>
-
                 <tbody class="divide-y divide-gray-200">
-                    <tr
-                        v-for="user in filteredUsers"
-                        :key="user.id"
-                        class="hover:bg-gray-50 transition-colors duration-200"
-                    >
-                        <td class="px-4 py-3 text-gray-900 font-medium">
-                            {{ user.full_name ?? '—' }}
-                        </td>
-
-                        <td class="px-4 py-3 font-mono text-xs text-gray-600">
-                            {{ user.email }}
-                        </td>
-
+                    <tr v-for="user in filteredUsers" :key="user.id"
+                        class="hover:bg-gray-50 transition-colors duration-200">
+                        <td class="px-4 py-3 text-gray-900 font-medium">{{ user.full_name ?? '—' }}</td>
+                        <td class="px-4 py-3 font-mono text-xs text-gray-600">{{ user.email }}</td>
                         <td class="px-4 py-3">
-                            <select
-                                v-if="user.role !== 'admin'"
-                                :value="user.role"
+                            <select v-if="user.role !== 'admin'" :value="user.role"
                                 class="font-mono text-xs border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-gray-500"
-                                @change="updateRole(user.id, $event.target.value)"
-                            >
+                                @change="updateRole(user.id, $event.target.value)">
                                 <option value="student">Student</option>
                                 <option value="teacher">Teacher</option>
                             </select>
-
-                            <span
-                                v-else
-                                class="font-mono text-xs font-semibold uppercase tracking-wide text-gray-900"
-                            >
-                                Admin
-                            </span>
+                            <span v-else
+                                class="font-mono text-xs font-semibold uppercase tracking-wide text-gray-900">Admin</span>
                         </td>
-
                         <td class="px-4 py-3">
-                            <button
-                                v-if="user.role !== 'admin'"
+                            <button v-if="user.role !== 'admin'"
                                 class="text-xs px-3 py-1 rounded-full font-medium transition"
                                 :class="user.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
-                                @click="toggleActive(user.id, user.is_active)"
-                            >
+                                @click="toggleActive(user.id, user.is_active)">
                                 {{ user.is_active ? 'Actiu' : 'Inactiu' }}
                             </button>
-
-                            <span v-else class="font-mono text-xs px-2 py-1 text-gray-400">
-                                —
-                            </span>
+                            <span v-else class="font-mono text-xs text-gray-400">—</span>
                         </td>
                     </tr>
-
                     <tr v-if="filteredUsers.length === 0">
                         <td colspan="4" class="px-4 py-6 text-center text-gray-400">
                             No hi ha usuaris amb aquests filtres
@@ -268,6 +222,37 @@ onMounted(fetchUsers)
                     </tr>
                 </tbody>
             </table>
+
+            <!-- Targetes — mòbil -->
+            <div class="sm:hidden divide-y divide-gray-200">
+                <div v-for="user in filteredUsers" :key="user.id" class="p-4 flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-medium text-gray-900">{{ user.full_name ?? '—' }}</span>
+                        <button v-if="user.role !== 'admin'"
+                            class="text-xs px-3 py-1 rounded-full font-medium"
+                            :class="user.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+                            @click="toggleActive(user.id, user.is_active)">
+                            {{ user.is_active ? 'Actiu' : 'Inactiu' }}
+                        </button>
+                        <span v-else class="text-xs text-gray-400">—</span>
+                    </div>
+                    <span class="font-mono text-xs text-gray-500">{{ user.email }}</span>
+                    <div>
+                        <select v-if="user.role !== 'admin'" :value="user.role"
+                            class="font-mono text-xs border border-gray-300 rounded-lg px-3 py-1.5 w-full"
+                            @change="updateRole(user.id, $event.target.value)">
+                            <option value="student">Student</option>
+                            <option value="teacher">Teacher</option>
+                        </select>
+                        <span v-else
+                            class="font-mono text-xs font-semibold uppercase tracking-wide text-gray-900">Admin</span>
+                    </div>
+                </div>
+                <div v-if="filteredUsers.length === 0" class="px-4 py-6 text-center text-gray-400 text-sm">
+                    No hi ha usuaris amb aquests filtres
+                </div>
+            </div>
+
         </div>
     </div>
 </template>
