@@ -12,7 +12,9 @@ class Settings(BaseSettings):
     supabase_publishable_key: str
     flag_secret: str
     supabase_service_role_key: str
-
+    default_admin_email: str = "admin@mail.test"
+    default_admin_password: str = "test123"
+    default_admin_name: str = "admin"
     model_config = SettingsConfigDict(
         env_file=str(ENV_FILE),
         env_file_encoding="utf-8",

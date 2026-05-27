@@ -49,3 +49,7 @@ class SupabaseAuthService(AuthProvider):
             email=user.email,
             full_name=full_name,
         )
+
+    # Esborrar usuaris-estudiants
+    def delete_user(self, user_id: str) -> None:
+        self.admin_client.auth.admin.delete_user(user_id)

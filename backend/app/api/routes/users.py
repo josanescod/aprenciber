@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.dependencies.auth import get_current_auth_user, require_admin, require_teacher
@@ -109,3 +109,21 @@ def list_users_by_role(
 ) -> list[UserListItem]:
     repo = ProfileRepository()
     return repo.get_by_role(db, role=role)
+
+
+@router.delete("/me", status_code=204)
+def delete_my_account(
+    auth_user: AuthenticatedUser = Depends(get_current_auth_user),
+    db: Session = Depends(get_db),
+) -> None:
+    if auth_user.role != "student":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Només els students poden eliminar el seu compte",
+        )
+    repo = ProfileRepository()
+    profile = repo.get_by_id(db, auth_user.id)
+    if profile:
+        repo.delete(db, profile=profile)
+    supabase = SupabaseAuthService()
+    supabase.delete_user(auth_user.id)
