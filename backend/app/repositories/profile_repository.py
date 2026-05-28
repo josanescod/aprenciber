@@ -68,3 +68,11 @@ class ProfileRepository:
     def delete(self, db: Session, *, profile: Profile) -> None:
         db.delete(profile)
         db.commit()
+
+    def update_full_name(
+        self, db: Session, *, profile: Profile, full_name: str | None
+    ) -> Profile:
+        profile.full_name = full_name
+        db.commit()
+        db.refresh(profile)
+        return profile

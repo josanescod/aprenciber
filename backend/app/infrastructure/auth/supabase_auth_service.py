@@ -53,3 +53,9 @@ class SupabaseAuthService(AuthProvider):
     # Esborrar usuaris-estudiants
     def delete_user(self, user_id: str) -> None:
         self.admin_client.auth.admin.delete_user(user_id)
+
+    # Actualitzar password usuaris
+    def update_password(self, user_id: str, new_password: str) -> None:
+        self.admin_client.auth.admin.update_user_by_id(
+            user_id, {"password": new_password}
+        )

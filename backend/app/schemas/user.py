@@ -51,3 +51,8 @@ class UserCreate(BaseModel):
         if v not in allowed:
             raise ValueError(f"Rol no vàlid. Allowed: {allowed}")
         return v
+
+
+class UserProfileUpdate(BaseModel):
+    full_name: str | None = None
+    password: str | None = Field(default=None, min_length=8)

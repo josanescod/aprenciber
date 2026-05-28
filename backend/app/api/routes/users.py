@@ -9,6 +9,7 @@ from app.schemas.user import (
     UserRoleUpdate,
     UserActiveUpdate,
     UserCreate,
+    UserProfileUpdate,
 )
 from app.services.profile_service import ProfileService
 from app.services.auth_provider import AuthenticatedUser
@@ -127,3 +128,24 @@ def delete_my_account(
         repo.delete(db, profile=profile)
     supabase = SupabaseAuthService()
     supabase.delete_user(auth_user.id)
+
+
+# endpoint per actualitzar nom i password usuaris
+
+
+@router.patch("/me", response_model=UserMeResponse)
+def update_my_profile(
+    body: UserProfileUpdate,
+    auth_user: AuthenticatedUser = Depends(get_current_auth_user),
+    db: Session = Depends(get_db),
+) -> UserMeResponse:
+    repo = ProfileRepository()
+    profile = repo.get_by_id(db, auth_user.id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Perfil no trobat")
+    if body.full_name is not None:
+        repo.update_full_name(db, profile=profile, full_name=body.full_name)
+    if body.password is not None:
+        supabase = SupabaseAuthService()
+        supabase.update_password(auth_user.id, body.password)
+    return UserMeResponse.model_validate(profile)
